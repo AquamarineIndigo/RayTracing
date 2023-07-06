@@ -45,14 +45,14 @@ fn get_colour(r: &Ray, world: &HittableList, depth: &i32) -> Vec3 {
         return Vec3::set(0.0, 0.0, 0.0);
     }
     let mut rec = HitRecord::new();
-    if world.hit(&r, &0.0, &basic::INFINITY, &mut rec) == true {
+    if world.hit(r, &0.0, &basic::INFINITY, &mut rec) {
         let target: Vec3 = vec3_tri_add(&rec.p, &rec.normal, &random_in_unit_sphere());
         // return vec3_mul(&0.5, &vec3_add(&rec.normal, &Vec3::set(1.0, 1.0, 1.0)));
         return vec3_mul(
             &0.5,
             &get_colour(
                 &Ray::set(rec.p, vec3_sub(&target, &rec.p)),
-                &world,
+                world,
                 &(depth - 1),
             ),
         );

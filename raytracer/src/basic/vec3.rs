@@ -47,13 +47,13 @@ impl Vec3 {
             z_dir: z,
         }
     }
-    pub fn clone(self: &Self) -> Vec3 {
-        Vec3 {
-            x_dir: self.x_dir,
-            y_dir: self.y_dir,
-            z_dir: self.z_dir,
-        }
-    }
+    //     pub fn clone(&self) -> Vec3 {
+    //         Vec3 {
+    //             x_dir: self.x_dir,
+    //             y_dir: self.y_dir,
+    //             z_dir: self.z_dir,
+    //         }
+    //     }
     pub fn random_vector() -> Vec3 {
         Vec3::set(random_double(), random_double(), random_double())
     }

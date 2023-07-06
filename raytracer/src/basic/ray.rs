@@ -14,8 +14,8 @@ impl Ray {
         }
     }
 
-    pub fn point_at_parameter(self: &Self, t: &f64) -> vector3::Vec3 {
+    pub fn point_at_parameter(&self, t: &f64) -> vector3::Vec3 {
         // self.origin + (self.direction * t)
-        vector3::vec3_add(&self.origin, &vector3::vec3_mul(&t, &self.direction))
+        vector3::vec3_add(&self.origin, &vector3::vec3_mul(t, &self.direction))
     }
 }

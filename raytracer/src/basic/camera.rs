@@ -16,8 +16,8 @@ impl Camera {
         let viewpoint_width = aspect_ratio * viewpoint_height;
         let focal_length = 1.0;
         let origin_ = Vec3::set(0.0, 0.0, 0.0);
-        let horizontal_ = Vec3::set(viewpoint_width.clone(), 0.0, 0.0);
-        let vertical_ = Vec3::set(0.0, viewpoint_height.clone(), 0.0);
+        let horizontal_ = Vec3::set(viewpoint_width, 0.0, 0.0);
+        let vertical_ = Vec3::set(0.0, viewpoint_height, 0.0);
         Camera {
             origin: origin_,
             horizontal: horizontal_,
@@ -34,14 +34,19 @@ impl Camera {
     }
     pub fn get_ray(&self, u: &f64, v: &f64) -> Ray {
         Ray::set(
-            self.origin.clone(),
+            self.origin,
             vec3_tri_add(
                 &self.lower_left_corner,
-                &vec3_mul(&u, &self.horizontal),
-                &vec3_mul(&v, &self.vertical),
-            )
-            .clone(),
+                &vec3_mul(u, &self.horizontal),
+                &vec3_mul(v, &self.vertical),
+            ),
         )
+    }
+}
+
+impl Default for Camera {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

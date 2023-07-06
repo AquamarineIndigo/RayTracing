@@ -38,7 +38,7 @@ impl hittable::Hittable for Sphere {
         let point_at = r.point_at_parameter(&root);
         rec.get_value(
             root,
-            point_at.clone(),
+            point_at,
             vec3::vec3_mul(
                 &(1.0 / self.radius),
                 &vec3::vec3_sub(&point_at, &self.center),
@@ -48,7 +48,7 @@ impl hittable::Hittable for Sphere {
             &(1.0 / self.radius),
             &vec3::vec3_sub(&point_at, &self.center),
         );
-        rec.set_face_normal(&r, &outward_normal);
-        return true;
+        rec.set_face_normal(r, &outward_normal);
+        true
     }
 }

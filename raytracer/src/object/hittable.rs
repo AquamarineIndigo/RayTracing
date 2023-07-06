@@ -1,6 +1,7 @@
 use super::basic::ray;
 use super::basic::vec3;
 
+#[derive(Copy, Clone)]
 pub struct HitRecord {
     pub t: f64,
     pub p: vec3::Vec3,
@@ -34,27 +35,33 @@ impl HitRecord {
         self.t = t_other;
         self.p = p_other;
         self.normal = normal_other;
-        return self;
+        self
     }
     pub fn set_face_normal(&mut self, r: &ray::Ray, outward_normal: &vec3::Vec3) {
-        if vec3::vec3_dot(&r.direction, &outward_normal) < 0.0 {
+        if vec3::vec3_dot(&r.direction, outward_normal) < 0.0 {
             self.front_face = true;
-            self.normal = outward_normal.clone();
+            self.normal = *outward_normal;
         } else {
             self.front_face = false;
-            self.normal = vec3::vec3_mul(&(-1.0), &outward_normal);
+            self.normal = vec3::vec3_mul(&(-1.0), outward_normal);
         }
     }
-    pub fn clone(&self) -> Self {
-        HitRecord {
-            t: self.t.clone(),
-            p: self.p.clone(),
-            normal: self.normal.clone(),
-            front_face: self.front_face.clone(),
-        }
-    }
+    //     pub fn clone(&self) -> Self {
+    //         HitRecord {
+    //             t: self.t.clone(),
+    //             p: self.p.clone(),
+    //             normal: self.normal.clone(),
+    //             front_face: self.front_face.clone(),
+    //         }
+    //     }
 }
 
 pub trait Hittable {
     fn hit(&self, r: &ray::Ray, t_min: &f64, t_max: &f64, rec: &mut HitRecord) -> bool;
+}
+
+impl Default for HitRecord {
+    fn default() -> Self {
+        Self::new()
+    }
 }
