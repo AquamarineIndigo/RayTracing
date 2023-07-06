@@ -75,7 +75,7 @@ fn get_id(i: &u32, j: &u32, width: &u32) -> usize {
 }
 
 fn main() {
-	let path = "output/book1/image1-8.jpg";
+	let path = "output/book1/image1-7.jpg";
 	// let width: u32 = 800;
 	const WIDTH: u32 = 1024;
 	let quality = 255;
