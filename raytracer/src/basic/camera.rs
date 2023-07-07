@@ -52,9 +52,9 @@ impl Default for Camera {
 
 pub fn write_colour(pixel_colour: &Vec3, sample_per_pixel: &i32) -> Vec<u8> {
     let scale: f64 = 1.0 / (*sample_per_pixel as f64);
-    let lr: f64 = pixel_colour.x_dir * scale;
-    let lg: f64 = pixel_colour.y_dir * scale;
-    let lb: f64 = pixel_colour.z_dir * scale;
+    let lr: f64 = (pixel_colour.x_dir * scale).sqrt();
+    let lg: f64 = (pixel_colour.y_dir * scale).sqrt();
+    let lb: f64 = (pixel_colour.z_dir * scale).sqrt();
     // lr *= scale;
     // lg *= scale;
     // lb *= scale;
