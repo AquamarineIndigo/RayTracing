@@ -89,3 +89,12 @@ pub fn random_in_unit_sphere() -> Vec3 {
 pub fn random_unit_vector() -> Vec3 {
     generate_unit_vector(&random_in_unit_sphere())
 }
+
+pub fn random_in_hemisphere(normal: &Vec3) -> Vec3 {
+	let in_unit_sphere = random_in_unit_sphere();
+	if vec3_dot(normal, &in_unit_sphere) > 0.0 {
+		in_unit_sphere
+	} else {
+		vec3_mul(&-1.0, &in_unit_sphere)
+	}
+}

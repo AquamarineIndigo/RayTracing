@@ -3,10 +3,10 @@ pub mod object;
 use basic::camera;
 use basic::ray::Ray;
 use basic::vec3::{
-    generate_unit_vector, random_unit_vector, vec3_add, /*vec3_dot,*/ vec3_mul,
-    /*vec3_sub,*/ vec3_tri_add, Vec3,
+    generate_unit_vector, vec3_add, /*random_unit_vector, vec3_dot,*/ vec3_mul,
+    /*vec3_sub, vec3_tri_add,*/ Vec3,
 };
-use object::basic::vec3::vec3_sub;
+use object::basic::vec3::{vec3_sub, random_in_hemisphere};
 // use object::basic::vec3::vec3_tri_add;
 use console::style;
 use image::{ImageBuffer, RgbImage};
@@ -46,7 +46,8 @@ fn get_colour(r: &Ray, world: &HittableList, depth: &i32) -> Vec3 {
     }
     let mut rec = HitRecord::new();
     if world.hit(r, &0.0, &basic::INFINITY, &mut rec) {
-        let target: Vec3 = vec3_tri_add(&rec.p, &rec.normal, &random_unit_vector());
+        // let target: Vec3 = vec3_tri_add(&rec.p, &rec.normal, &random_unit_vector());
+	let target: Vec3 = vec3_add(&rec.p, &random_in_hemisphere(&rec.normal));
         // return vec3_mul(&0.5, &vec3_add(&rec.normal, &Vec3::set(1.0, 1.0, 1.0)));
         return vec3_mul(
             &0.5,
@@ -91,7 +92,7 @@ fn get_id(i: &u32, j: &u32, width: &u32) -> usize {
 }
 
 fn main() {
-    let path = "output/book1/image1-7.jpg";
+    let path = "output/book1/image1-10.jpg";
     // let width: u32 = 800;
     const WIDTH: u32 = 1024;
     let quality = 255;
