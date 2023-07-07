@@ -3,7 +3,7 @@ pub mod object;
 use basic::camera;
 use basic::ray::Ray;
 use basic::vec3::{
-    generate_unit_vector, random_in_unit_sphere, vec3_add, /*vec3_dot,*/ vec3_mul,
+    generate_unit_vector, random_unit_vector, vec3_add, /*vec3_dot,*/ vec3_mul,
     /*vec3_sub,*/ vec3_tri_add, Vec3,
 };
 use object::basic::vec3::vec3_sub;
@@ -46,7 +46,7 @@ fn get_colour(r: &Ray, world: &HittableList, depth: &i32) -> Vec3 {
     }
     let mut rec = HitRecord::new();
     if world.hit(r, &0.0, &basic::INFINITY, &mut rec) {
-        let target: Vec3 = vec3_tri_add(&rec.p, &rec.normal, &random_in_unit_sphere());
+        let target: Vec3 = vec3_tri_add(&rec.p, &rec.normal, &random_unit_vector());
         // return vec3_mul(&0.5, &vec3_add(&rec.normal, &Vec3::set(1.0, 1.0, 1.0)));
         return vec3_mul(
             &0.5,
