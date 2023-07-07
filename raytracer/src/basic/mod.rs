@@ -3,11 +3,11 @@ pub mod ray;
 pub mod vec3;
 // pub mod utility;
 pub use ray::Ray;
-use std::f64::consts::PI;
 pub use vec3::Vec3;
 
+// pub const PI: f64 = 3.1415926535897932385;
 pub const INFINITY: f64 = f64::INFINITY;
-// pub const PI: f64 = 3.141_592_653_589_793;
+use std::f64::consts::PI;
 
 pub fn degrees_to_radians(degrees: &f64) -> f64 {
     degrees * PI / 180.0

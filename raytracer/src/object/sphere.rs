@@ -1,18 +1,21 @@
 use crate::basic::ray; // as ray;
 use crate::basic::vec3; // as vector3;
 use crate::object::hittable; // as hitable;
+use crate::object::material::Materials;
 
 #[derive(Copy, Clone)]
 pub struct Sphere {
     pub center: vec3::Vec3,
     pub radius: f64,
+    pub material: Materials,
 }
 
 impl Sphere {
-    pub fn set(cen: vec3::Vec3, r: f64) -> Sphere {
+    pub fn set(cen: vec3::Vec3, r: f64, mat: &Materials) -> Sphere {
         Sphere {
             center: cen,
             radius: r,
+            material: *mat,
         }
     }
 }
@@ -43,6 +46,7 @@ impl hittable::Hittable for Sphere {
                 &(1.0 / self.radius),
                 &vec3::vec3_sub(&point_at, &self.center),
             ),
+            &self.material,
         );
         let outward_normal: vec3::Vec3 = vec3::vec3_mul(
             &(1.0 / self.radius),

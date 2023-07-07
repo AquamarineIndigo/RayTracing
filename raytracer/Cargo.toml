@@ -1,5 +1,5 @@
 [package]
-name = "pic7"
+name = "pic18"
 version = "0.1.0"
 edition = "2021"
 
@@ -10,4 +10,4 @@ image = "0.23.0"
 console = "0.9.1"
 indicatif = "0.16.2"
 rand = "0.8.5"
-rayon = "1.5.3"
+num = "0.4.0"

@@ -1,21 +1,39 @@
-use super::vec3 as vector3;
+use super::vec3::{vec3_add, vec3_mul, Vec3};
 
 #[derive(Copy, Clone)]
 pub struct Ray {
-    pub direction: vector3::Vec3,
-    pub origin: vector3::Vec3,
+    pub direction: Vec3,
+    pub origin: Vec3,
 }
 
 impl Ray {
-    pub fn set(origin: vector3::Vec3, direction: vector3::Vec3) -> Self {
+    pub fn set(origin: Vec3, direction: Vec3) -> Self {
         Ray {
             direction, //: direction.clone(),
             origin,    //: origin.clone(),
         }
     }
 
-    pub fn point_at_parameter(&self, t: &f64) -> vector3::Vec3 {
+    pub fn point_at_parameter(&self, t: &f64) -> Vec3 {
         // self.origin + (self.direction * t)
-        vector3::vec3_add(&self.origin, &vector3::vec3_mul(t, &self.direction))
+        vec3_add(&self.origin, &vec3_mul(t, &self.direction))
+    }
+
+    pub fn copy_ray(&mut self, other: &Ray) -> &Self {
+        [self.direction, self.origin] = [other.direction, other.origin];
+        self
+    }
+    pub fn set_value(&mut self, origin: Vec3, direction: Vec3) -> &Self {
+        [self.direction, self.origin] = [direction, origin];
+        self
+    }
+}
+
+impl Default for Ray {
+    fn default() -> Self {
+        Self {
+            direction: Vec3::set(0.0, 0.0, 0.0),
+            origin: Vec3::set(0.0, 0.0, 0.0),
+        }
     }
 }
