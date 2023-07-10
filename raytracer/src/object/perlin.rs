@@ -46,9 +46,9 @@ impl Perlin {
         }
     }
     pub fn noise(&self, point: &Vec3) -> f64 {
-        let i = (4 * point.x_dir as i32) & 255;
-        let j = (4 * point.y_dir as i32) & 255;
-        let k = (4 * point.z_dir as i32) & 255;
+        let i = ((4.0 * point.x_dir) as i32) & 255;
+        let j = ((4.0 * point.y_dir) as i32) & 255;
+        let k = ((4.0 * point.z_dir) as i32) & 255;
         self.ranfloat
             [(self.perm_x[i as usize] ^ self.perm_y[j as usize] ^ self.perm_z[k as usize]) as usize]
     }
