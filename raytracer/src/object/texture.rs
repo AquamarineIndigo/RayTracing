@@ -105,7 +105,7 @@ impl From<Textures> for TexturesCheckered {
             Textures::Solid(s) => {
                 TexturesCheckered::Solid(SolidColour::new_from_vector(&s.colour_value))
             }
-            Textures::Noise(_) => TexturesCheckered::Noise(Box::new(NoiseTexture::new())),
+            Textures::Noise(n) => TexturesCheckered::Noise(Box::new(NoiseTexture::new(n.scale))),
             Textures::Checkered(_) => ret,
         }
     }
@@ -114,23 +114,28 @@ impl From<Textures> for TexturesCheckered {
 #[derive(Clone)]
 pub struct NoiseTexture {
     pub noise: Perlin,
+    pub scale: f64,
 }
 
 impl NoiseTexture {
-    pub fn new() -> Self {
+    pub fn new(scale: f64) -> Self {
         Self {
             noise: Perlin::new(),
+            scale,
         }
     }
 }
 
 impl Texture for NoiseTexture {
     fn value(&self, _u: f64, _v: f64, p: &Vec3) -> Vec3 {
-        vec3_mul(&self.noise.noise(p), &Vec3::set(1.0, 1.0, 1.0))
+        vec3_mul(
+            &self.noise.noise(&vec3_mul(&self.scale, p)),
+            &Vec3::set(1.0, 1.0, 1.0),
+        )
     }
 }
 impl Default for NoiseTexture {
     fn default() -> Self {
-        Self::new()
+        Self::new(1.0)
     }
 }

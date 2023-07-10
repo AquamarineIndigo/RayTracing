@@ -82,7 +82,7 @@ fn two_perlin_spheres() -> HittableList {
     let mut world = HittableList {
         objects: Vec::new(),
     };
-    let pertext = Textures::Noise(Box::new(NoiseTexture::new()));
+    let pertext = Textures::Noise(Box::new(NoiseTexture::new(4.0)));
     let mat = Materials::LambertianMaterials(Box::new(Lambertian::new_from_textures(&pertext)));
     world.add(Objects::SphereShape(Sphere::set(
         Vec3::set(0.0, -1000.0, 0.0),
@@ -129,7 +129,7 @@ fn get_id(i: &u32, j: &u32, width: &u32) -> usize {
 }
 
 fn main() {
-    let path = "output/book2/image2-6.jpg";
+    let path = "output/book2/image2-7.jpg";
     // let width: u32 = 800;
     const WIDTH: u32 = 1280;
     let quality = 255;
