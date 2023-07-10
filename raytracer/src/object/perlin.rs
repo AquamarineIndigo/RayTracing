@@ -2,7 +2,7 @@
 use crate::basic::random_integer;
 use crate::basic::Vec3;
 // use std::sync::Arc;
-use crate::basic::vec3::{generate_unit_vector, vec3_dot};
+use crate::basic::vec3::{generate_unit_vector, vec3_dot, vec3_mul};
 
 const POINT_COUNT: usize = 256;
 #[derive(Clone, Copy)]
@@ -55,6 +55,18 @@ impl Perlin {
             perm_z,
             random_vectors,
         }
+    }
+
+    pub fn turbulence(&self, p: &Vec3, depth: i32) -> f64 {
+        let mut accumulate = 0.0;
+        let mut temp_p = *p;
+        let mut weight = 1.0;
+        for _i in 0..depth {
+            accumulate += weight * self.noise(&temp_p);
+            weight *= 0.5;
+            temp_p = vec3_mul(&2.0, &temp_p);
+        }
+        accumulate.abs()
     }
     // fn trilinear_interp(c: &[[[f64; 2]; 2]; 2], u: f64, v: f64, w: f64) -> f64 {
     // 	let mut accumulate = 0.0;

@@ -118,6 +118,7 @@ pub struct NoiseTexture {
 }
 
 impl NoiseTexture {
+    const TURBULANCE_DEPTH: i32 = 7;
     pub fn new(scale: f64) -> Self {
         Self {
             noise: Perlin::new(),
@@ -129,7 +130,10 @@ impl NoiseTexture {
 impl Texture for NoiseTexture {
     fn value(&self, _u: f64, _v: f64, p: &Vec3) -> Vec3 {
         vec3_mul(
-            &((1.0 + self.noise.noise(&vec3_mul(&self.scale, p))) * 0.5),
+            // &((1.0 + self.noise.noise(&vec3_mul(&self.scale, p))) * 0.5),
+            &self
+                .noise
+                .turbulence(&vec3_mul(&self.scale, p), Self::TURBULANCE_DEPTH),
             &Vec3::set(1.0, 1.0, 1.0),
         )
     }
