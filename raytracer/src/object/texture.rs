@@ -129,7 +129,7 @@ impl NoiseTexture {
 impl Texture for NoiseTexture {
     fn value(&self, _u: f64, _v: f64, p: &Vec3) -> Vec3 {
         vec3_mul(
-            &self.noise.noise(&vec3_mul(&self.scale, p)),
+            &((1.0 + self.noise.noise(&vec3_mul(&self.scale, p))) * 0.5),
             &Vec3::set(1.0, 1.0, 1.0),
         )
     }
