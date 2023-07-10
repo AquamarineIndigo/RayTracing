@@ -129,15 +129,15 @@ fn get_id(i: &u32, j: &u32, width: &u32) -> usize {
 }
 
 fn main() {
-    let path = "output/book2/image2-9.jpg";
+    let path = "output/book2/image2-10.jpg";
     // let width: u32 = 800;
-    const WIDTH: u32 = 1280;
+    const WIDTH: u32 = 1920;
     let quality = 255;
     // let aspect_ratio: f64 = 16.0 / 9.0;
     const ASPECTRATIO: f64 = 16.0 / 9.0;
     // let height: u32 = ((width as f64) / aspect_ratio) as u32;
     const HEIGHT: u32 = ((WIDTH as f64) / ASPECTRATIO) as u32;
-    let sample_per_pixel = 50;
+    let sample_per_pixel = 100;
     let mut img: RgbImage = ImageBuffer::new(WIDTH, HEIGHT);
     let max_depth = 50;
 
