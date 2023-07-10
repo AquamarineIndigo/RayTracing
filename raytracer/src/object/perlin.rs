@@ -70,6 +70,9 @@ impl Perlin {
         let u = point.x_dir - point.x_dir.floor();
         let v = point.y_dir - point.y_dir.floor();
         let w = point.z_dir - point.z_dir.floor();
+        let u = u * u * (3.0 - 2.0 * u);
+        let v = v * v * (3.0 - 2.0 * v);
+        let w = w * w * (3.0 - 2.0 * w);
         let i = point.x_dir.floor() as i32;
         let j = point.y_dir.floor() as i32;
         let k = point.z_dir.floor() as i32;
