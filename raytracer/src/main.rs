@@ -111,7 +111,7 @@ fn simple_light() -> HittableList {
 
     let diffuse_light = DiffuseLight::new_from_colour(&Vec3::set(4.0, 4.0, 4.0));
     world.add(XYRect::new(3.0, 5.0, 1.0, 3.0, -2.0, &diffuse_light));
-    // world.add(Sphere::set(Vec3::set(0.0, 2.0, 0.0), 2.0, &diffuse_light));
+    world.add(Sphere::set(Vec3::set(0.0, 7.0, 0.0), 2.0, &diffuse_light));
     world
 }
 
@@ -142,7 +142,7 @@ fn get_id(i: &u32, j: &u32, width: &u32) -> usize {
 }
 
 fn main() {
-    let path = "output/book2/image2-12.jpg";
+    let path = "output/book2/image2-13.jpg";
     // let width: u32 = 800;
     const WIDTH: u32 = 1024;
     let quality = 255;
