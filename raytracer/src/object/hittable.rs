@@ -56,13 +56,27 @@ impl HitRecord {
         self.material = Arc::new(mat.clone());
         self
     }
+    pub fn set_with_ptr(
+        &mut self,
+        t_other: f64,
+        p_other: vec3::Vec3,
+        u: f64,
+        v: f64,
+        mat: Arc<dyn Material + Send + Sync + 'static>,
+    ) -> &Self {
+        self.t = t_other;
+        self.p = p_other;
+        [self.u, self.v] = [u, v];
+        self.material = mat;
+        self
+    }
     pub fn set_face_normal(&mut self, r: &ray::Ray, outward_normal: &vec3::Vec3) {
         if vec3::vec3_dot(&r.direction, outward_normal) < 0.0 {
             self.front_face = true;
             self.normal = *outward_normal;
         } else {
             self.front_face = false;
-            self.normal = vec3::vec3_mul(&(-1.0), outward_normal);
+            self.normal = -*outward_normal;
         }
     }
     // pub fn clone(&self) -> Self {

@@ -1,4 +1,5 @@
-use super::{random_double, random_range};
+use super::random_range;
+use std::ops::{Add, AddAssign, Div, DivAssign, Index, Mul, MulAssign, Neg, Sub, SubAssign};
 
 #[derive(Copy, Clone)]
 pub struct Vec3 {
@@ -70,7 +71,11 @@ impl Vec3 {
     // 	}
     // }
     pub fn random_vector() -> Vec3 {
-        Vec3::set(random_double(), random_double(), random_double())
+        Vec3::set(
+            random_range(-1.0, 1.0),
+            random_range(-1.0, 1.0),
+            random_range(-1.0, 1.0),
+        )
     }
     pub fn random_vector_range(min: &f64, max: &f64) -> Vec3 {
         Vec3::set(
@@ -131,24 +136,17 @@ pub fn random_in_hemisphere(normal: &Vec3) -> Vec3 {
 }
 
 pub fn reflect(v: &Vec3, n: &Vec3) -> Vec3 {
-    vec3_sub(v, &vec3_mul(&(2.0 * vec3_dot(v, n)), n))
+    (*v) - 2.0 * vec3_dot(v, n) * (*n)
 }
 
 pub fn refract(uv: &Vec3, n: &Vec3, eta_i_over_eta_t: &f64) -> Vec3 {
-    let mut cos_theta: f64 = 1.0;
-    let dt: f64 = vec3_dot(&vec3_mul(&-1.0, uv), n);
-    if dt < cos_theta {
-        cos_theta = dt;
-    }
-    let r_out_perpendicular: Vec3 =
-        vec3_mul(eta_i_over_eta_t, &vec3_add(uv, &vec3_mul(&cos_theta, n)));
-    let r_out_parallel: Vec3 = vec3_mul(
-        &(-(1.0 - vec3_dot(&r_out_perpendicular, &r_out_perpendicular))
-            .abs()
-            .sqrt()),
-        n,
-    );
-    vec3_add(&r_out_perpendicular, &r_out_parallel)
+    let cos_theta: f64 = vec3_dot(&-(*uv), n).min(1.0);
+    let r_out_perpendicular: Vec3 = (*eta_i_over_eta_t) * (*uv + cos_theta * (*n));
+    let r_out_parallel: Vec3 = -(1.0 - vec3_dot(&r_out_perpendicular, &r_out_perpendicular))
+        .abs()
+        .sqrt()
+        * (*n);
+    r_out_perpendicular + r_out_parallel
 }
 
 pub fn random_in_unit_disk() -> Vec3 {
@@ -156,6 +154,168 @@ pub fn random_in_unit_disk() -> Vec3 {
         let p = Vec3::set(random_range(-1.0, 1.0), random_range(-1.0, 1.0), 0.0);
         if vec3_dot(&p, &p) < 1.0 {
             return p;
+        }
+    }
+}
+
+impl Neg for Vec3 {
+    type Output = Self;
+    fn neg(self) -> Self::Output {
+        Self {
+            x_dir: -self.x_dir,
+            y_dir: -self.y_dir,
+            z_dir: -self.z_dir,
+        }
+    }
+}
+
+impl Add for Vec3 {
+    type Output = Self;
+    fn add(self, rhs: Self) -> Self::Output {
+        vec3_add(&rhs, &self)
+    }
+}
+
+impl Add<f64> for Vec3 {
+    type Output = Self;
+    fn add(self, rhs: f64) -> Self::Output {
+        Self {
+            x_dir: self.x_dir + rhs,
+            y_dir: self.y_dir + rhs,
+            z_dir: self.z_dir + rhs,
+        }
+    }
+}
+
+impl AddAssign for Vec3 {
+    fn add_assign(&mut self, rhs: Self) {
+        *self = Self {
+            x_dir: self.x_dir + rhs.x_dir,
+            y_dir: self.y_dir + rhs.y_dir,
+            z_dir: self.z_dir + rhs.z_dir,
+        };
+    }
+}
+
+impl AddAssign<f64> for Vec3 {
+    fn add_assign(&mut self, rhs: f64) {
+        *self = Self {
+            x_dir: self.x_dir + rhs,
+            y_dir: self.y_dir + rhs,
+            z_dir: self.z_dir + rhs,
+        }
+    }
+}
+
+impl Sub for Vec3 {
+    type Output = Self;
+    fn sub(self, rhs: Self) -> Self::Output {
+        vec3_sub(&self, &rhs)
+    }
+}
+
+impl Sub<f64> for Vec3 {
+    type Output = Self;
+    fn sub(self, rhs: f64) -> Self::Output {
+        Self {
+            x_dir: self.x_dir - rhs,
+            y_dir: self.y_dir - rhs,
+            z_dir: self.z_dir - rhs,
+        }
+    }
+}
+impl SubAssign for Vec3 {
+    fn sub_assign(&mut self, rhs: Self) {
+        *self = Self {
+            x_dir: self.x_dir - rhs.x_dir,
+            y_dir: self.y_dir - rhs.y_dir,
+            z_dir: self.z_dir - rhs.z_dir,
+        };
+    }
+}
+
+impl SubAssign<f64> for Vec3 {
+    fn sub_assign(&mut self, rhs: f64) {
+        *self = Self {
+            x_dir: self.x_dir - rhs,
+            y_dir: self.y_dir - rhs,
+            z_dir: self.z_dir - rhs,
+        };
+    }
+}
+
+impl Mul for Vec3 {
+    type Output = Self;
+    fn mul(self, rhs: Self) -> Self::Output {
+        Self {
+            x_dir: self.x_dir * rhs.x_dir,
+            y_dir: self.y_dir * rhs.y_dir,
+            z_dir: self.z_dir * rhs.z_dir,
+        }
+    }
+}
+
+impl Mul<f64> for Vec3 {
+    type Output = Self;
+    fn mul(self, rhs: f64) -> Self::Output {
+        Self {
+            x_dir: self.x_dir * rhs,
+            y_dir: self.y_dir * rhs,
+            z_dir: self.z_dir * rhs,
+        }
+    }
+}
+
+impl Mul<Vec3> for f64 {
+    type Output = Vec3;
+    fn mul(self, rhs: Vec3) -> Vec3 {
+        Vec3 {
+            x_dir: self * rhs.x_dir,
+            y_dir: self * rhs.y_dir,
+            z_dir: self * rhs.z_dir,
+        }
+    }
+}
+
+impl MulAssign<f64> for Vec3 {
+    fn mul_assign(&mut self, rhs: f64) {
+        *self = Self {
+            x_dir: self.x_dir * rhs,
+            y_dir: self.y_dir * rhs,
+            z_dir: self.z_dir * rhs,
+        };
+    }
+}
+
+impl Div<f64> for Vec3 {
+    type Output = Self;
+    fn div(self, rhs: f64) -> Self::Output {
+        Self {
+            x_dir: self.x_dir / rhs,
+            y_dir: self.y_dir / rhs,
+            z_dir: self.z_dir / rhs,
+        }
+    }
+}
+
+impl DivAssign<f64> for Vec3 {
+    fn div_assign(&mut self, rhs: f64) {
+        *self = Self {
+            x_dir: self.x_dir / rhs,
+            y_dir: self.y_dir / rhs,
+            z_dir: self.z_dir / rhs,
+        };
+    }
+}
+
+impl Index<i32> for Vec3 {
+    type Output = f64;
+    fn index(&self, index: i32) -> &Self::Output {
+        match index {
+            0 => &self.x_dir,
+            1 => &self.y_dir,
+            2 => &self.z_dir,
+            _ => &0.0,
         }
     }
 }

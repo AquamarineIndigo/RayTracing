@@ -1,17 +1,19 @@
+#[allow(dead_code)]
 pub mod basic;
 pub mod object;
 use basic::ray::Ray;
 use basic::vec3::{
-    /* vec3_sub,vec3_dot, vec3_tri_add, random_unit_vector,*/ generate_unit_vector, vec3_add,
-    vec3_mul, Vec3,
+    vec3_add, /*vec3_mul, vec3_sub,vec3_dot, vec3_tri_add, random_unit_vector,  generate_unit_vector*/
+    Vec3,
 };
-use object::ImageTexture;
+// use object::ImageTexture;
 // use object::Textures;
 // use object::SolidColour;
+// use object::basic::vec3::vec3_vec_mul;
 use object::basic::random_double;
-use object::basic::vec3::vec3_vec_mul;
 // use object::basic::random_range;
 use object::hittable::{HitRecord, Hittable};
+use object::material::DiffuseLight;
 use object::sphere::Sphere;
 // use object::sphere::MovingSphere;
 use console::style;
@@ -22,11 +24,12 @@ use object::hittable_list::HittableList;
 // use rayon::prelude::*;
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 // use object::texture::CheckeredTexture;
-// use object::texture::NoiseTexture;
 use crate::object::material::{Lambertian, Metal /* , Dielectric, Material*/};
+use object::texture::NoiseTexture;
 use std::{fs::File, process::exit};
 
 use crate::basic::camera::{write_colour, Camera, CameraCharacteristics, TimeInterval};
+use crate::object::aarect::XYRect;
 use std::sync::mpsc;
 use std::sync::Arc;
 use std::thread;
@@ -88,41 +91,50 @@ use std::thread;
 // 	world
 // }
 
-fn earth() -> HittableList {
-    let earth_texture = ImageTexture::new("earthmap.jpg".to_string());
-    let earth_surface = Lambertian::new_from_textures(&earth_texture);
+// fn earth() -> HittableList {
+// 	let earth_texture = ImageTexture::new("earthmap.jpg".to_string());
+// 	let earth_surface = Lambertian::new_from_textures(&earth_texture);
+// 	let mut world = HittableList { objects: Vec::new() };
+// 	world.add(Sphere::set(Vec3::set(0.0, 0.0, 0.0), 2.0, &earth_surface));
+// 	world
+// }
+
+fn simple_light() -> HittableList {
     let mut world = HittableList {
         objects: Vec::new(),
     };
-    world.add(Sphere::set(Vec3::set(0.0, 0.0, 0.0), 2.0, &earth_surface));
+    let pertext = NoiseTexture::new(4.0);
+    // let mat = Lambertian::set(0.4, 0.2, 0.1);
+    let mat = Lambertian::new_from_textures(&pertext);
+    world.add(Sphere::set(Vec3::set(0.0, -1000.0, 0.0), 1000.0, &mat));
+    world.add(Sphere::set(Vec3::set(0.0, 2.0, 0.0), 2.0, &mat));
+
+    let diffuse_light = DiffuseLight::new_from_colour(&Vec3::set(4.0, 4.0, 4.0));
+    world.add(XYRect::new(3.0, 5.0, 1.0, 3.0, -2.0, &diffuse_light));
+    // world.add(Sphere::set(Vec3::set(0.0, 2.0, 0.0), 2.0, &diffuse_light));
     world
 }
 
-fn get_colour(r: &Ray, world: &HittableList, depth: &i32) -> Vec3 {
+fn get_colour(r: &Ray, background: &Vec3, world: &HittableList, depth: &i32) -> Vec3 {
     if *depth < 0 {
         return Vec3::set(0.0, 0.0, 0.0);
     }
     let mut rec = HitRecord::new(&Metal::set(0.0, 0.0, 0.0, 0.0));
     if world.hit(r, &0.001, &basic::INFINITY, &mut rec) {
-        // let target: Vec3 = vec3_tri_add(&rec.p, &rec.normal, &random_unit_vector());
-        // return vec3_mul(&0.5, &vec3_add(&rec.normal, &Vec3::set(1.0, 1.0, 1.0)));
         let mut scattered = Ray::default();
         let mut attenuation = Vec3::set(0.0, 0.0, 0.0);
+        let emitted = rec.material.emitted(rec.u, rec.v, &rec.p);
         if rec
             .material
             .scatter(r, &rec, &mut attenuation, &mut scattered)
         {
-            return vec3_vec_mul(&attenuation, &get_colour(&scattered, world, &(depth - 1)));
+            emitted + attenuation * get_colour(&scattered, background, world, &(depth - 1))
         } else {
-            return Vec3::set(0.0, 0.0, 0.0);
+            emitted
         }
+    } else {
+        *background
     }
-    let unit_direction = generate_unit_vector(&r.direction);
-    let t: f64 = 0.5 * (unit_direction.y_dir + 1.0);
-    vec3_add(
-        &vec3_mul(&(1.0 - t), &Vec3::set(1.0, 1.0, 1.0)),
-        &vec3_mul(&t, &Vec3::set(0.5, 0.7, 1.0)),
-    )
 }
 
 fn get_id(i: &u32, j: &u32, width: &u32) -> usize {
@@ -130,9 +142,9 @@ fn get_id(i: &u32, j: &u32, width: &u32) -> usize {
 }
 
 fn main() {
-    let path = "output/book2/image2-11.jpg";
+    let path = "output/book2/image2-12.jpg";
     // let width: u32 = 800;
-    const WIDTH: u32 = 1920;
+    const WIDTH: u32 = 1024;
     let quality = 255;
     // let aspect_ratio: f64 = 16.0 / 9.0;
     const ASPECTRATIO: f64 = 16.0 / 9.0;
@@ -156,9 +168,11 @@ fn main() {
     // 	TimeInterval::new(0.0, 1.0),
     // );
 
-    let world = earth();
-    let look_from = Vec3::set(-13.0, 2.0, 3.0);
-    let look_at = Vec3::set(0.0, 0.0, 0.0);
+    let world = simple_light();
+    // let background = Vec3::set(0.7, 0.8, 1.0);
+    let background = Vec3::set(0.0, 0.0, 0.0);
+    let look_from = Vec3::set(26.0, 3.0, 6.0);
+    let look_at = Vec3::set(0.0, 2.0, 0.0);
     let vup = Vec3::set(0.0, 1.0, 0.0);
     const APERTURE: f64 = 0.0;
     let dist_to_focus = 10.0;
@@ -216,10 +230,15 @@ fn main() {
                         for _s in 0..sample_per_pixel {
                             let u = (i as f64 + random_double()) / ((WIDTH - 1) as f64);
                             let v = (j as f64 + random_double()) / ((HEIGHT - 1) as f64);
-                            let r: Ray = cam.get_ray(&u, &v);
+                            let r: Ray = cam.get_ray(u, v);
                             pixel_colour = vec3_add(
                                 &pixel_colour,
-                                &get_colour(&r, &section_world.clone(), &max_depth),
+                                &get_colour(
+                                    &r,
+                                    &background.clone(),
+                                    &section_world.clone(),
+                                    &max_depth,
+                                ),
                             );
                         }
                         let mut arr = vec![0, 0, 0];

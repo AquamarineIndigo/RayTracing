@@ -1,4 +1,5 @@
 pub mod aabb;
+pub mod aarect;
 pub mod bvh;
 pub mod hittable;
 pub mod hittable_list;
@@ -10,6 +11,7 @@ pub mod texture;
 
 pub use crate::basic;
 pub use aabb::{surrounding_box, AxisAlignedBoundingBoxes};
+pub use aarect::XYRect;
 pub use bvh::BvhNode;
 pub use hittable::{HitRecord, Hittable};
 pub use hittable_list::HittableList;

@@ -36,8 +36,8 @@ impl AxisAlignedBoundingBoxes {
         if invd < 0.0 {
             swap(&mut t0, &mut t1);
         }
-        t_min = if t0 > t_min { t0 } else { t_min };
-        t_max = if t1 < t_max { t1 } else { t_max };
+        t_min = t_min.max(t0);
+        t_max = t_max.min(t1);
         if t_max <= t_min {
             return false;
         }
@@ -48,8 +48,8 @@ impl AxisAlignedBoundingBoxes {
         if invd < 0.0 {
             swap(&mut t0, &mut t1);
         }
-        t_min = if t0 > t_min { t0 } else { t_min };
-        t_max = if t1 < t_max { t1 } else { t_max };
+        t_min = t_min.max(t0);
+        t_max = t_max.min(t1);
         if t_max <= t_min {
             return false;
         }
@@ -60,8 +60,8 @@ impl AxisAlignedBoundingBoxes {
         if invd < 0.0 {
             swap(&mut t0, &mut t1);
         }
-        t_min = if t0 > t_min { t0 } else { t_min };
-        t_max = if t1 < t_max { t1 } else { t_max };
+        t_min = t_min.max(t0);
+        t_max = t_max.min(t1);
         if t_max <= t_min {
             return false;
         }

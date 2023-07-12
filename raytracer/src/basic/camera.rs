@@ -1,11 +1,8 @@
 use super::clamp;
 use super::random_range;
 use super::ray::Ray;
-use super::vec3::{
-    generate_unit_vector, random_in_unit_disk, vec3_add, vec3_mul, vec3_product, vec3_sub,
-    vec3_tri_add, Vec3,
-};
-use crate::basic::degrees_to_radians;
+use super::vec3::{generate_unit_vector, random_in_unit_disk, vec3_product, Vec3};
+// use crate::basic::degrees_to_radians;
 
 #[derive(Copy, Clone)]
 pub struct VecUVW {
@@ -87,28 +84,24 @@ impl Camera {
         // time0: f64,
         // time1: f64,
     ) -> Self {
-        let theta = degrees_to_radians(&para.vfov);
+        let theta = para.vfov.to_radians();
         let h = (theta / 2.0).tan();
         let viewpoint_height = 2.0 * h;
         let viewpoint_width = para.aspect_ratio * viewpoint_height;
 
-        let w_ = generate_unit_vector(&vec3_sub(look_from, look_at));
+        let w_ = generate_unit_vector(&(*look_from - *look_at));
         let u_ = generate_unit_vector(&vec3_product(vup, &w_));
         let v_ = vec3_product(&w_, &u_);
-        let horizontal_ = vec3_mul(&(viewpoint_width * para.focus_dist), &u_);
-        let vertical_ = vec3_mul(&(viewpoint_height * para.focus_dist), &v_);
+        let horizontal_ = viewpoint_width * para.focus_dist * u_;
+        let vertical_ = viewpoint_height * para.focus_dist * v_;
         Camera {
             origin: *look_from,
             horizontal: horizontal_,
             vertical: vertical_,
-            lower_left_corner: vec3_sub(
-                look_from,
-                &vec3_tri_add(
-                    &vec3_mul(&0.5, &horizontal_),
-                    &vec3_mul(&0.5, &vertical_),
-                    &vec3_mul(&para.focus_dist, &w_),
-                ),
-            ),
+            lower_left_corner: *look_from
+                - horizontal_ / 2.0
+                - vertical_ / 2.0
+                - para.focus_dist * w_,
             u: u_,
             v: v_,
             // VecUVW::new(u_, v_, w_),
@@ -117,19 +110,12 @@ impl Camera {
             time1: time01.time1,
         }
     }
-    pub fn get_ray(&self, u: &f64, v: &f64) -> Ray {
-        let rd = vec3_mul(&self.lens_radius, &random_in_unit_disk());
-        let offset = vec3_add(&vec3_mul(&rd.x_dir, &self.u), &vec3_mul(&rd.y_dir, &self.v));
+    pub fn get_ray(&self, s: f64, t: f64) -> Ray {
+        let rd = self.lens_radius * random_in_unit_disk();
+        let offset = rd.x_dir * self.u + rd.y_dir * self.v;
         Ray::set_with_time(
-            vec3_add(&self.origin, &offset),
-            vec3_sub(
-                &vec3_tri_add(
-                    &self.lower_left_corner,
-                    &vec3_mul(u, &self.horizontal),
-                    &vec3_mul(v, &self.vertical),
-                ),
-                &vec3_add(&self.origin, &offset),
-            ),
+            self.origin + offset,
+            self.lower_left_corner + s * self.horizontal + t * self.vertical - self.origin - offset,
             random_range(self.time0, self.time1),
         )
     }

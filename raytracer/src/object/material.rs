@@ -4,8 +4,8 @@ use super::hittable::HitRecord;
 use crate::basic::random_double;
 use crate::basic::ray::Ray;
 use crate::basic::vec3::{
-    generate_unit_vector, random_in_unit_sphere, random_unit_vector, reflect, refract, vec3_add,
-    vec3_dot, vec3_mul, Vec3,
+    generate_unit_vector, random_in_unit_sphere, random_unit_vector, reflect, refract, vec3_dot,
+    vec3_mul, Vec3,
 };
 // use super::SolidColour;
 use super::{SolidColour, Texture};
@@ -19,6 +19,9 @@ pub trait Material: Send + Sync {
         attenuation: &mut Vec3,
         scattered: &mut Ray,
     ) -> bool;
+    fn emitted(&self, _u: f64, _v: f64, _p: &Vec3) -> Vec3 {
+        Vec3::set(0.0, 0.0, 0.0)
+    }
 }
 
 #[derive(Clone)]
@@ -34,6 +37,10 @@ pub struct Metal {
 #[derive(Copy, Clone)]
 pub struct Dielectric {
     pub ir: f64,
+}
+#[derive(Clone)]
+pub struct DiffuseLight<T: Texture + Clone> {
+    pub emit: T,
 }
 
 impl<T: Texture + Clone> Lambertian<T> {
@@ -83,6 +90,19 @@ impl Dielectric {
         r0 + (1.0 - r0) * (1.0 - cos).powi(5)
     }
 }
+impl<T: Texture + Clone> DiffuseLight<T> {
+    #[allow(dead_code)]
+    pub fn new_from_textures(a: &T) -> Self {
+        Self { emit: a.clone() }
+    }
+}
+impl DiffuseLight<SolidColour> {
+    pub fn new_from_colour(a: &Vec3) -> Self {
+        Self {
+            emit: SolidColour::new_from_vector(a),
+        }
+    }
+}
 
 impl<T: Texture + Clone + std::marker::Send + std::marker::Sync> Material for Lambertian<T> {
     fn scatter(
@@ -92,22 +112,11 @@ impl<T: Texture + Clone + std::marker::Send + std::marker::Sync> Material for La
         attenuation: &mut Vec3,
         scattered: &mut Ray,
     ) -> bool {
-        let mut scatter_direction = vec3_add(&rec.normal, &random_unit_vector());
+        let mut scatter_direction = rec.normal + random_unit_vector();
         if scatter_direction.near_zero() {
             scatter_direction.copy_vector(&rec.normal);
         }
         scattered.set_value(rec.p, scatter_direction, r_in.tm);
-        // match &self.albedo {
-        // 	Textures::Checkered(c) => {
-        // 		attenuation.copy_vector(&c.value(rec.u, rec.v, &rec.p));
-        // 	}
-        // 	Textures::Solid(s) => {
-        // 		attenuation.copy_vector(&s.value(rec.u, rec.v, &rec.p));
-        // 	}
-        // 	Textures::Noise(n) => {
-        // 		attenuation.copy_vector(&n.value(rec.u, rec.v, &rec.p));
-        // 	}
-        // }
         attenuation.copy_vector(&self.albedo.value(rec.u, rec.v, &rec.p));
         true
     }
@@ -123,7 +132,7 @@ impl Material for Metal {
         let reflected = reflect(&generate_unit_vector(&r_in.direction), &rec.normal);
         scattered.copy_ray(&Ray::set_with_time(
             rec.p,
-            vec3_add(&reflected, &vec3_mul(&self.fuzz, &random_in_unit_sphere())),
+            reflected + self.fuzz * random_in_unit_sphere(),
             r_in.tm,
         ));
         attenuation.copy_vector(&self.albedo);
@@ -168,48 +177,20 @@ impl Material for Dielectric {
         true
     }
 }
-// impl Material for LambertianCheckered {
-// 	fn scatter(&self, r_in: &Ray, rec: &HitRecord, attenuation: &mut Vec3, scattered: &mut Ray) -> bool {
-// 		let mut scatter_direction = vec3_add(&rec.normal, &random_unit_vector());
-// 		if scatter_direction.near_zero() {
-// 			scatter_direction.copy_vector(&rec.normal);
-// 		}
-// 		scattered.set_value(rec.p, scatter_direction, r_in.tm);
-// 		attenuation.copy_vector(&self.albedo.value(rec.u, rec.v, &rec.p));
-// 		true
-// 	}
-// }
-
-// #[derive(Clone)]
-// pub enum Materials {
-// 	MetalMaterials(Metal),
-// 	LambertianMaterials(Box<Lambertian>) ,
-// 	DielectricMaterials(Dielectric),
-// }
-
-// impl Material for Materials  {
-// 	fn scatter(&self, r_in: &Ray, rec: &HitRecord, attenuation: &mut Vec3, scattered: &mut Ray) -> bool {
-// 		match self {
-// 			Materials::LambertianMaterials(l) => {
-// 				l.scatter(r_in, rec, attenuation, scattered)
-// 			},
-// 			Materials::MetalMaterials (m) => {
-// 				m.scatter(r_in, rec, attenuation, scattered)
-// 			},
-// 			Materials::DielectricMaterials(d) => {
-// 				d.scatter(r_in, rec, attenuation, scattered)
-// 			}
-// 		}
-// 	}
-// }
-
-// impl Default for Lambertian {
-// 	fn default() -> Self {
-// 		Lambertian {
-// 			albedo: Textures::Solid(SolidColour::new_from_rgb(0.0, 0.0, 0.0))
-// 		}
-// 	}
-// }
+impl<T: Texture + Clone + std::marker::Send + std::marker::Sync> Material for DiffuseLight<T> {
+    fn scatter(
+        &self,
+        _r_in: &Ray,
+        _rec: &HitRecord,
+        _attenuation: &mut Vec3,
+        _scattered: &mut Ray,
+    ) -> bool {
+        false
+    }
+    fn emitted(&self, u: f64, v: f64, p: &Vec3) -> Vec3 {
+        self.emit.value(u, v, p)
+    }
+}
 impl Default for Metal {
     fn default() -> Self {
         Metal {

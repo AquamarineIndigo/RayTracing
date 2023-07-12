@@ -41,27 +41,8 @@ impl Hittable for HittableList {
         let mut hit_anything = false;
         let mut closest_so_far: f64 = *t_max;
 
-        for i in &self.objects {
-            // match i {
-            // 	Objects::SphereShape(s) => {
-            // 			if s.hit(r, t_min, &closest_so_far, &mut temp_rec) {
-            // 				hit_anything = true;
-            // 				closest_so_far = temp_rec.t;
-            // 				*rec = temp_rec.clone();
-            // 				rec.material = s.material.clone();
-            // 		}
-            // 	}
-            // 	Objects::MovingSphere(s) => {
-            // 		if s.hit(r, t_min, &closest_so_far, &mut temp_rec) {
-            // 			hit_anything = true;
-            // 			closest_so_far = temp_rec.t;
-            // 			*rec = temp_rec.clone();
-            // 			rec.material = s.material.clone();
-            // 		}
-            // 	}
-            // 	_ => {}
-            // }
-            if (*i).hit(r, t_min, &closest_so_far, &mut temp_rec) {
+        for i in self.objects.iter() {
+            if i.hit(r, t_min, &closest_so_far, &mut temp_rec) {
                 hit_anything = true;
                 closest_so_far = temp_rec.t;
                 *rec = temp_rec.clone();
@@ -82,34 +63,8 @@ impl Hittable for HittableList {
         }
         let mut temp_box = AxisAlignedBoundingBoxes::default();
         let mut first_box = true;
-        for i in &self.objects {
-            // match i {
-            // 	Objects::SphereShape(s) => {
-            // 		if !s.bounding_box(time0, time1, &mut temp_box) {
-            // 			return false;
-            // 		}
-            // 		if first_box {
-            // 			output_box.copy_from_other(&temp_box);
-            // 			first_box = false;
-            // 		} else {
-            // 			output_box.copy_from_other(&surrounding_box(output_box, &temp_box));
-            // 		}
-            // 	}
-            // 	Objects::MovingSphere(s) => {
-            // 		if !s.bounding_box(time0, time1, &mut temp_box) {
-            // 			return false;
-            // 		}
-            // 		if first_box {
-            // 			output_box.copy_from_other(&temp_box);
-            // 			first_box = false;
-            // 		} else {
-            // 			output_box.copy_from_other(&surrounding_box(output_box, &temp_box));
-            // 		}
-            // 	}
-            // 	_ => {}
-            // }
-
-            if !(*i).bounding_box(time0, time1, &mut temp_box) {
+        for i in self.objects.iter() {
+            if !i.bounding_box(time0, time1, &mut temp_box) {
                 return false;
             }
             if first_box {

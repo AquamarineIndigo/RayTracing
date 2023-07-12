@@ -1,4 +1,4 @@
-use super::vec3::{vec3_add, vec3_mul, Vec3};
+use super::vec3::Vec3;
 
 #[derive(Copy, Clone)]
 pub struct Ray {
@@ -24,9 +24,9 @@ impl Ray {
         }
     }
 
-    pub fn point_at_parameter(&self, t: &f64) -> Vec3 {
+    pub fn point_at_parameter(&self, t: f64) -> Vec3 {
         // self.origin + (self.direction * t)
-        vec3_add(&self.origin, &vec3_mul(t, &self.direction))
+        self.origin + t * self.direction
     }
 
     pub fn copy_ray(&mut self, other: &Ray) -> &Self {
