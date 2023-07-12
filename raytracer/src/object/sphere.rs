@@ -9,17 +9,17 @@ use crate::basic::vec3::vec3_sub;
 use crate::basic::vec3::Vec3;
 use crate::object::aabb::{surrounding_box, AxisAlignedBoundingBoxes};
 use crate::object::hittable; // as hitable;
-use crate::object::material::Materials;
+use crate::object::material::Material;
 
 #[derive(Clone)]
-pub struct Sphere {
+pub struct Sphere<T: Material + Clone> {
     pub center: vec3::Vec3,
     pub radius: f64,
-    pub material: Materials,
+    pub material: T,
 }
 
-impl Sphere {
-    pub fn set(cen: vec3::Vec3, r: f64, mat: &Materials) -> Self {
+impl<T: Material + Clone> Sphere<T> {
+    pub fn set(cen: vec3::Vec3, r: f64, mat: &T) -> Self {
         Self {
             center: cen,
             radius: r,
@@ -34,7 +34,7 @@ impl Sphere {
     }
 }
 
-impl hittable::Hittable for Sphere {
+impl<T: Material + Clone + 'static> hittable::Hittable for Sphere<T> {
     fn hit(&self, r: &ray::Ray, t_min: &f64, t_max: &f64, rec: &mut hittable::HitRecord) -> bool {
         let oc = vec3::vec3_sub(&r.origin, &self.center);
         let a: f64 = vec3::vec3_dot(&r.direction, &r.direction);
@@ -67,7 +67,7 @@ impl hittable::Hittable for Sphere {
             &vec3::vec3_sub(&point_at, &self.center),
         );
         rec.set_face_normal(r, &outward_normal);
-        Sphere::get_sphere_uv(&outward_normal, &mut rec.u, &mut rec.v);
+        Sphere::<T>::get_sphere_uv(&outward_normal, &mut rec.u, &mut rec.v);
         true
     }
 
@@ -92,23 +92,23 @@ impl hittable::Hittable for Sphere {
 }
 
 #[derive(Clone)]
-pub struct MovingSphere {
+pub struct MovingSphere<T: Material + Clone> {
     pub center0: Vec3,
     pub center1: Vec3,
     pub time0: f64,
     pub time1: f64,
     pub radius: f64,
-    pub material: Materials,
+    pub material: T,
 }
 
-impl MovingSphere {
+impl<T: Material + Clone> MovingSphere<T> {
     pub fn set(
         center0: &Vec3,
         center1: &Vec3,
         time0: f64,
         time1: f64,
         radius: f64,
-        material: &Materials,
+        material: &T,
     ) -> Self {
         Self {
             center0: *center0,
@@ -130,7 +130,7 @@ impl MovingSphere {
     }
 }
 
-impl hittable::Hittable for MovingSphere {
+impl<T: Material + Clone + 'static> hittable::Hittable for MovingSphere<T> {
     fn hit(&self, r: &ray::Ray, t_min: &f64, t_max: &f64, rec: &mut hittable::HitRecord) -> bool {
         let oc = vec3::vec3_sub(&r.origin, &self.center(r.tm));
         let a: f64 = vec3::vec3_dot(&r.direction, &r.direction);

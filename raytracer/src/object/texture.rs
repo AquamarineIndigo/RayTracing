@@ -1,23 +1,22 @@
-use crate::basic::vec3::{vec3_mul, Vec3};
-
 use super::perlin::Perlin;
+use crate::basic::vec3::{vec3_mul, Vec3};
 
 pub trait Texture {
     fn value(&self, u: f64, v: f64, p: &Vec3) -> Vec3;
 }
 
-#[derive(Clone)]
-pub enum Textures {
-    Solid(SolidColour),
-    Checkered(Box<CheckeredTexture>),
-    Noise(Box<NoiseTexture>),
-}
-#[derive(Clone)]
-pub enum TexturesCheckered {
-    Solid(SolidColour),
-    Noise(Box<NoiseTexture>),
-    // Checkered(CheckeredTexture<TEven, TOdd>),
-}
+// #[derive(Clone)]
+// pub enum Textures {
+// 	Solid(SolidColour),
+// 	Checkered(Box<CheckeredTexture>),
+// 	Noise(Box<NoiseTexture>),
+// }
+// #[derive(Clone)]
+// pub enum TexturesCheckered {
+// 	Solid(SolidColour),
+// 	Noise(Box<NoiseTexture>),
+// 	// Checkered(CheckeredTexture<TEven, TOdd>),
+// }
 
 #[derive(Copy, Clone)]
 pub struct SolidColour {
@@ -50,39 +49,50 @@ impl Texture for SolidColour {
 }
 
 #[derive(Clone)]
-pub struct CheckeredTexture {
-    pub odd: TexturesCheckered,
-    pub even: TexturesCheckered,
+pub struct CheckeredTexture<TEven, TOdd>
+where
+    TEven: Texture + Clone,
+    TOdd: Texture + Clone,
+{
+    pub odd: TOdd,
+    pub even: TEven,
 }
 
-impl CheckeredTexture {
+impl<TEven: Texture + Clone, TOdd: Texture + Clone> CheckeredTexture<TEven, TOdd> {
     // pub fn new_from_colour(c1: &Vec3, c2: &Vec3) -> Self {
     // 	Self {
     // 		even: SolidColour::new_from_vector(c1),
     // 		odd: SolidColour::new_from_vector(c2),
     // 	}
     // }
-    pub fn new(even: Textures, odd: Textures) -> Self {
-        Self {
-            even: even.into(),
-            odd: odd.into(),
-        }
+    pub fn new(even: TEven, odd: TOdd) -> Self {
+        Self { even, odd }
     }
 }
 
-impl Texture for CheckeredTexture {
+impl<TEven: Texture + Clone, TOdd: Texture + Clone> Texture for CheckeredTexture<TEven, TOdd> {
     fn value(&self, u: f64, v: f64, p: &Vec3) -> Vec3 {
         let sines = (p.x_dir * 10.0).sin() * (p.y_dir * 10.0).sin() * (p.z_dir * 10.0).sin();
         if sines < 0.0 {
-            match &self.odd {
-                TexturesCheckered::Solid(s) => s.value(u, v, p),
-                TexturesCheckered::Noise(n) => n.value(u, v, p),
-            }
+            // match &self.odd {
+            // 	TexturesCheckered::Solid(s) => {
+            // 		s.value(u, v, p)
+            // 	}
+            // 	TexturesCheckered::Noise(n) => {
+            // 		n.value(u, v, p)
+            // 	}
+            // }
+            self.odd.value(u, v, p)
         } else {
-            match &self.even {
-                TexturesCheckered::Solid(s) => s.value(u, v, p),
-                TexturesCheckered::Noise(n) => n.value(u, v, p),
-            }
+            // match &self.even {
+            // 	TexturesCheckered::Solid(s) => {
+            // 		s.value(u, v, p)
+            // 	}
+            // 	TexturesCheckered::Noise(n) => {
+            // 		n.value(u, v, p)
+            // 	}
+            // }
+            self.even.value(u, v, p)
         }
     }
 }
@@ -95,21 +105,23 @@ impl Default for SolidColour {
     }
 }
 
-impl From<Textures> for TexturesCheckered {
-    fn from(value: Textures) -> Self {
-        let ret = TexturesCheckered::Solid(SolidColour::default());
-        // if let Textures::Solid(s) = value {
-        // 	ret = TexturesCheckered::Solid(SolidColour::new_from_vector(&s.colour_value));
-        // }
-        match value {
-            Textures::Solid(s) => {
-                TexturesCheckered::Solid(SolidColour::new_from_vector(&s.colour_value))
-            }
-            Textures::Noise(n) => TexturesCheckered::Noise(Box::new(NoiseTexture::new(n.scale))),
-            Textures::Checkered(_) => ret,
-        }
-    }
-}
+// impl From<Textures> for TexturesCheckered {
+// 	fn from(value: Textures) -> Self {
+// 		let ret = TexturesCheckered::Solid(SolidColour::default());
+// 		// if let Textures::Solid(s) = value {
+// 		// 	ret = TexturesCheckered::Solid(SolidColour::new_from_vector(&s.colour_value));
+// 		// }
+// 		match value {
+// 			Textures::Solid(s) => {
+// 				TexturesCheckered::Solid(SolidColour::new_from_vector(&s.colour_value))
+// 			}
+// 			Textures::Noise(n) => {
+// 				TexturesCheckered::Noise(Box::new(NoiseTexture::new(n.scale)))
+// 			}
+// 			Textures::Checkered(_) => {ret},
+// 		}
+// 	}
+// }
 
 #[derive(Clone)]
 pub struct NoiseTexture {
