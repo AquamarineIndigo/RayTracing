@@ -11,7 +11,7 @@ pub mod texture;
 
 pub use crate::basic;
 pub use aabb::{surrounding_box, AxisAlignedBoundingBoxes};
-pub use aarect::XYRect;
+pub use aarect::{XYRect, XZRect, YZRect};
 pub use bvh::BvhNode;
 pub use hittable::{HitRecord, Hittable};
 pub use hittable_list::HittableList;

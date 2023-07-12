@@ -57,6 +57,11 @@ impl Lambertian<SolidColour> {
             albedo: SolidColour::new_from_vector(a),
         }
     }
+    pub fn new_from_colour(a: f64, b: f64, c: f64) -> Self {
+        Self {
+            albedo: SolidColour::new_from_rgb(a, b, c),
+        }
+    }
     #[allow(dead_code)]
     pub fn set(a: f64, b: f64, c: f64) -> Self {
         Self {
@@ -97,9 +102,14 @@ impl<T: Texture + Clone> DiffuseLight<T> {
     }
 }
 impl DiffuseLight<SolidColour> {
-    pub fn new_from_colour(a: &Vec3) -> Self {
+    pub fn new_from_vector(a: &Vec3) -> Self {
         Self {
             emit: SolidColour::new_from_vector(a),
+        }
+    }
+    pub fn new_from_colour(a: f64, b: f64, c: f64) -> Self {
+        Self {
+            emit: SolidColour::new_from_rgb(a, b, c),
         }
     }
 }

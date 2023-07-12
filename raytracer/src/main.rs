@@ -14,7 +14,7 @@ use object::basic::random_double;
 // use object::basic::random_range;
 use object::hittable::{HitRecord, Hittable};
 use object::material::DiffuseLight;
-use object::sphere::Sphere;
+// use object::sphere::Sphere;
 // use object::sphere::MovingSphere;
 use console::style;
 use image::{ImageBuffer, RgbImage};
@@ -24,12 +24,12 @@ use object::hittable_list::HittableList;
 // use rayon::prelude::*;
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 // use object::texture::CheckeredTexture;
+// use object::texture::NoiseTexture;
 use crate::object::material::{Lambertian, Metal /* , Dielectric, Material*/};
-use object::texture::NoiseTexture;
 use std::{fs::File, process::exit};
 
 use crate::basic::camera::{write_colour, Camera, CameraCharacteristics, TimeInterval};
-use crate::object::aarect::XYRect;
+use crate::object::aarect::{XYRect, XZRect, YZRect};
 use std::sync::mpsc;
 use std::sync::Arc;
 use std::thread;
@@ -99,19 +99,34 @@ use std::thread;
 // 	world
 // }
 
-fn simple_light() -> HittableList {
+// fn simple_light() -> HittableList {
+// 	let mut world = HittableList { objects: Vec::new() };
+// 	let pertext = NoiseTexture::new(4.0);
+// 	// let mat = Lambertian::set(0.4, 0.2, 0.1);
+// 	let mat = Lambertian::new_from_textures(&pertext);
+// 	world.add(Sphere::set(Vec3::set(0.0, -1000.0, 0.0), 1000.0, &mat));
+// 	world.add(Sphere::set(Vec3::set(0.0, 2.0, 0.0), 2.0, &mat));
+
+// 	let diffuse_light = DiffuseLight::new_from_colour(&Vec3::set(4.0, 4.0, 4.0));
+// 	world.add(XYRect::new(3.0, 5.0, 1.0, 3.0, -2.0, &diffuse_light));
+// 	world.add(Sphere::set(Vec3::set(0.0, 7.0, 0.0), 2.0, &diffuse_light));
+// 	world
+// }
+
+fn cornell_box() -> HittableList {
     let mut world = HittableList {
         objects: Vec::new(),
     };
-    let pertext = NoiseTexture::new(4.0);
-    // let mat = Lambertian::set(0.4, 0.2, 0.1);
-    let mat = Lambertian::new_from_textures(&pertext);
-    world.add(Sphere::set(Vec3::set(0.0, -1000.0, 0.0), 1000.0, &mat));
-    world.add(Sphere::set(Vec3::set(0.0, 2.0, 0.0), 2.0, &mat));
-
-    let diffuse_light = DiffuseLight::new_from_colour(&Vec3::set(4.0, 4.0, 4.0));
-    world.add(XYRect::new(3.0, 5.0, 1.0, 3.0, -2.0, &diffuse_light));
-    world.add(Sphere::set(Vec3::set(0.0, 7.0, 0.0), 2.0, &diffuse_light));
+    let red = Lambertian::new_from_colour(0.65, 0.05, 0.05);
+    let white = Lambertian::new_from_colour(0.73, 0.73, 0.73);
+    let green = Lambertian::new_from_colour(0.12, 0.45, 0.15);
+    let light = DiffuseLight::new_from_colour(15.0, 15.0, 15.0);
+    world.add(XYRect::new(0.0, 555.0, 0.0, 555.0, 555.0, &white));
+    world.add(XZRect::new(213.0, 343.0, 227.0, 332.0, 554.0, &light));
+    world.add(XZRect::new(0.0, 555.0, 0.0, 555.0, 0.0, &white));
+    world.add(XZRect::new(0.0, 555.0, 0.0, 555.0, 555.0, &white));
+    world.add(YZRect::new(0.0, 555.0, 0.0, 555.0, 555.0, &green));
+    world.add(YZRect::new(0.0, 555.0, 0.0, 555.0, 0.0, &red));
     world
 }
 
@@ -142,15 +157,16 @@ fn get_id(i: &u32, j: &u32, width: &u32) -> usize {
 }
 
 fn main() {
-    let path = "output/book2/image2-13.jpg";
+    let path = "output/book2/image2-14.jpg";
     // let width: u32 = 800;
-    const WIDTH: u32 = 1024;
+    const WIDTH: u32 = 1280;
     let quality = 255;
     // let aspect_ratio: f64 = 16.0 / 9.0;
-    const ASPECTRATIO: f64 = 16.0 / 9.0;
+    // const ASPECTRATIO: f64 = 16.0 / 9.0;
+    const ASPECTRATIO: f64 = 1.0;
     // let height: u32 = ((width as f64) / aspect_ratio) as u32;
     const HEIGHT: u32 = ((WIDTH as f64) / ASPECTRATIO) as u32;
-    let sample_per_pixel = 100;
+    let sample_per_pixel = 200;
     let mut img: RgbImage = ImageBuffer::new(WIDTH, HEIGHT);
     let max_depth = 50;
 
@@ -168,11 +184,11 @@ fn main() {
     // 	TimeInterval::new(0.0, 1.0),
     // );
 
-    let world = simple_light();
+    let world = cornell_box();
     // let background = Vec3::set(0.7, 0.8, 1.0);
     let background = Vec3::set(0.0, 0.0, 0.0);
-    let look_from = Vec3::set(26.0, 3.0, 6.0);
-    let look_at = Vec3::set(0.0, 2.0, 0.0);
+    let look_from = Vec3::set(278.0, 278.0, -800.0);
+    let look_at = Vec3::set(278.0, 278.0, 0.0);
     let vup = Vec3::set(0.0, 1.0, 0.0);
     const APERTURE: f64 = 0.0;
     let dist_to_focus = 10.0;
@@ -182,7 +198,7 @@ fn main() {
         &look_from,
         &look_at,
         &vup,
-        CameraCharacteristics::new(20.0, ASPECTRATIO, APERTURE, dist_to_focus),
+        CameraCharacteristics::new(40.0, ASPECTRATIO, APERTURE, dist_to_focus),
         TimeInterval::new(0.0, 1.0),
     );
 
