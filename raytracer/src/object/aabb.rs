@@ -30,40 +30,18 @@ impl AxisAlignedBoundingBoxes {
     }
 
     pub fn hit(&self, r: &Ray, mut t_min: f64, mut t_max: f64) -> bool {
-        let invd = 1.0 / r.direction.x_dir;
-        let mut t0 = (self.minimum.x_dir - r.origin.x_dir) * invd;
-        let mut t1 = (self.maximum.x_dir - r.origin.x_dir) * invd;
-        if invd < 0.0 {
-            swap(&mut t0, &mut t1);
-        }
-        t_min = t_min.max(t0);
-        t_max = t_max.min(t1);
-        if t_max <= t_min {
-            return false;
-        }
-
-        let invd = 1.0 / r.direction.y_dir;
-        let mut t0 = (self.minimum.y_dir - r.origin.y_dir) * invd;
-        let mut t1 = (self.maximum.y_dir - r.origin.y_dir) * invd;
-        if invd < 0.0 {
-            swap(&mut t0, &mut t1);
-        }
-        t_min = t_min.max(t0);
-        t_max = t_max.min(t1);
-        if t_max <= t_min {
-            return false;
-        }
-
-        let invd = 1.0 / r.direction.z_dir;
-        let mut t0 = (self.minimum.z_dir - r.origin.z_dir) * invd;
-        let mut t1 = (self.maximum.z_dir - r.origin.z_dir) * invd;
-        if invd < 0.0 {
-            swap(&mut t0, &mut t1);
-        }
-        t_min = t_min.max(t0);
-        t_max = t_max.min(t1);
-        if t_max <= t_min {
-            return false;
+        for i in 0..3 {
+            let invd = 1.0 / r.direction[i];
+            let mut t0 = (self.minimum[i] - r.origin[i]) * invd;
+            let mut t1 = (self.maximum[i] - r.origin[i]) * invd;
+            if invd < 0.0 {
+                swap(&mut t0, &mut t1);
+            }
+            t_min = t_min.max(t0);
+            t_max = t_max.min(t1);
+            if t_max <= t_min {
+                return false;
+            }
         }
         true
     }
@@ -91,20 +69,20 @@ pub fn surrounding_box(
         },
     );
     let big = Vec3::set(
-        if box0.minimum.x_dir > box1.minimum.x_dir {
-            box0.minimum.x_dir
+        if box0.maximum.x_dir > box1.maximum.x_dir {
+            box0.maximum.x_dir
         } else {
-            box1.minimum.x_dir
+            box1.maximum.x_dir
         },
-        if box0.minimum.y_dir > box1.minimum.y_dir {
-            box0.minimum.y_dir
+        if box0.maximum.y_dir > box1.maximum.y_dir {
+            box0.maximum.y_dir
         } else {
-            box1.minimum.y_dir
+            box1.maximum.y_dir
         },
-        if box0.minimum.z_dir > box1.minimum.z_dir {
-            box0.minimum.z_dir
+        if box0.maximum.z_dir > box1.maximum.z_dir {
+            box0.maximum.z_dir
         } else {
-            box1.minimum.z_dir
+            box1.maximum.z_dir
         },
     );
     AxisAlignedBoundingBoxes::new(small, big)

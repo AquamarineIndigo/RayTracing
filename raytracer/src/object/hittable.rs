@@ -56,6 +56,19 @@ impl HitRecord {
         self.material = Arc::new(mat.clone());
         self
     }
+    pub fn get_value_ptr(
+        &mut self,
+        t_other: f64,
+        p_other: vec3::Vec3,
+        normal_other: vec3::Vec3,
+        mat: Arc<dyn Material + Send + Sync + 'static>,
+    ) -> &Self {
+        self.t = t_other;
+        self.p = p_other;
+        self.normal = normal_other;
+        self.material = mat;
+        self
+    }
     pub fn set_with_ptr(
         &mut self,
         t_other: f64,

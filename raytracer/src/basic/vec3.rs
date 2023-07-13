@@ -1,5 +1,7 @@
 use super::random_range;
-use std::ops::{Add, AddAssign, Div, DivAssign, Index, Mul, MulAssign, Neg, Sub, SubAssign};
+use std::ops::{
+    Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign,
+};
 
 #[derive(Copy, Clone)]
 pub struct Vec3 {
@@ -316,6 +318,16 @@ impl Index<i32> for Vec3 {
             1 => &self.y_dir,
             2 => &self.z_dir,
             _ => &0.0,
+        }
+    }
+}
+impl IndexMut<i32> for Vec3 {
+    fn index_mut(&mut self, index: i32) -> &mut Self::Output {
+        match index {
+            0 => &mut self.x_dir,
+            1 => &mut self.y_dir,
+            2 => &mut self.z_dir,
+            _ => panic!("Index out of bound: index of Vec3 should be in range [0, 2]"),
         }
     }
 }

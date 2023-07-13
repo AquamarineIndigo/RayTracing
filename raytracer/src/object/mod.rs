@@ -1,6 +1,8 @@
 pub mod aabb;
 pub mod aarect;
+pub mod boxes;
 pub mod bvh;
+pub mod constant_medium;
 pub mod hittable;
 pub mod hittable_list;
 pub mod image_texture;
@@ -8,6 +10,7 @@ pub mod material;
 pub mod perlin;
 pub mod sphere;
 pub mod texture;
+pub mod translation;
 
 pub use crate::basic;
 pub use aabb::{surrounding_box, AxisAlignedBoundingBoxes};
@@ -19,3 +22,4 @@ pub use image_texture::ImageTexture;
 pub use material::{Lambertian, Material, Metal};
 pub use sphere::Sphere;
 pub use texture::{SolidColour, Texture};
+pub use translation::Translate;

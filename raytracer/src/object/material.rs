@@ -42,6 +42,10 @@ pub struct Dielectric {
 pub struct DiffuseLight<T: Texture + Clone> {
     pub emit: T,
 }
+#[derive(Clone)]
+pub struct Isotropic<T: Texture + Clone> {
+    pub albedo: T,
+}
 
 impl<T: Texture + Clone> Lambertian<T> {
     #[allow(dead_code)]
@@ -110,6 +114,26 @@ impl DiffuseLight<SolidColour> {
     pub fn new_from_colour(a: f64, b: f64, c: f64) -> Self {
         Self {
             emit: SolidColour::new_from_rgb(a, b, c),
+        }
+    }
+}
+impl<T: Texture + Clone> Isotropic<T> {
+    #[allow(dead_code)]
+    pub fn new_from_textures(a: &T) -> Self {
+        Self { albedo: a.clone() }
+    }
+}
+impl Isotropic<SolidColour> {
+    // default material
+    #[allow(dead_code)]
+    pub fn new_from_vector(a: &Vec3) -> Self {
+        Self {
+            albedo: SolidColour::new_from_vector(a),
+        }
+    }
+    pub fn new_from_colour(a: f64, b: f64, c: f64) -> Self {
+        Self {
+            albedo: SolidColour::new_from_rgb(a, b, c),
         }
     }
 }
@@ -199,6 +223,19 @@ impl<T: Texture + Clone + std::marker::Send + std::marker::Sync> Material for Di
     }
     fn emitted(&self, u: f64, v: f64, p: &Vec3) -> Vec3 {
         self.emit.value(u, v, p)
+    }
+}
+impl<T: Texture + Clone + std::marker::Send + std::marker::Sync> Material for Isotropic<T> {
+    fn scatter(
+        &self,
+        r_in: &Ray,
+        rec: &HitRecord,
+        attenuation: &mut Vec3,
+        scattered: &mut Ray,
+    ) -> bool {
+        scattered.set_value(rec.p, random_in_unit_sphere(), r_in.tm);
+        attenuation.copy_vector(&self.albedo.value(rec.u, rec.v, &rec.p));
+        true
     }
 }
 impl Default for Metal {

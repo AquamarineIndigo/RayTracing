@@ -89,11 +89,10 @@ impl Hittable for BvhNode {
         if !self.boxes.hit(r, *t_min, *t_max) {
             return false;
         }
-        let hit_left: bool = self.left.as_ref().hit(r, t_min, t_max, rec);
+        let hit_left: bool = self.left.hit(r, t_min, t_max, rec);
         let t_clone = rec.t;
         let hit_right: bool =
             self.right
-                .as_ref()
                 .hit(r, t_min, if hit_left { &t_clone } else { t_max }, rec);
         hit_left || hit_right
     }
@@ -105,37 +104,37 @@ pub fn box_compare(a: &Arc<BvhNode>, b: &Arc<BvhNode>, axis: i32) -> Ordering {
     if !(*a).bounding_box(0.0, 0.0, &mut box_a) || !(*b).bounding_box(0.0, 0.0, &mut box_b) {
         println!("No Bounding Box in BVHNode Constructor");
     }
-    match axis {
-        0 => {
-            // if box_a.minimum.x_dir < box_b.minimum.x_dir {
-            // 	Ordering::Less
-            // } else if box_a.minimum.x_dir > box_b.minimum.x_dir {
-            // 	Ordering::Greater
-            // } else {
-            // 	Ordering::Equal
-            // }
-            f64::partial_cmp(&box_a.minimum.x_dir, &box_b.minimum.x_dir)
-        }
-        1 => {
-            // if box_a.minimum.y_dir < box_b.minimum.y_dir {
-            // 	Ordering::Less
-            // } else if box_a.minimum.y_dir > box_b.minimum.y_dir {
-            // 	Ordering::Greater
-            // } else {
-            // 	Ordering::Equal
-            // }
-            f64::partial_cmp(&box_a.minimum.y_dir, &box_b.minimum.y_dir)
-        }
-        _ => {
-            // if box_a.minimum.z_dir < box_b.minimum.z_dir {
-            // 	Ordering::Less
-            // } else if box_a.minimum.z_dir > box_b.minimum.z_dir {
-            // 	Ordering::Greater
-            // } else {
-            // 	Ordering::Equal
-            // }
-            f64::partial_cmp(&box_a.minimum.z_dir, &box_b.minimum.z_dir)
-        }
-    }
-    .unwrap()
+    f64::partial_cmp(&box_a.minimum[axis], &box_b.minimum[axis]).unwrap()
+    // match axis {
+    // 	0 => {
+    // 		// if box_a.minimum.x_dir < box_b.minimum.x_dir {
+    // 		// 	Ordering::Less
+    // 		// } else if box_a.minimum.x_dir > box_b.minimum.x_dir {
+    // 		// 	Ordering::Greater
+    // 		// } else {
+    // 		// 	Ordering::Equal
+    // 		// }
+    // 		f64::partial_cmp(&box_a.minimum.x_dir, &box_b.minimum.x_dir)
+    // 	}
+    // 	1 => {
+    // 		// if box_a.minimum.y_dir < box_b.minimum.y_dir {
+    // 		// 	Ordering::Less
+    // 		// } else if box_a.minimum.y_dir > box_b.minimum.y_dir {
+    // 		// 	Ordering::Greater
+    // 		// } else {
+    // 		// 	Ordering::Equal
+    // 		// }
+    // 		f64::partial_cmp(&box_a.minimum.y_dir, &box_b.minimum.y_dir)
+    // 	}
+    // 	_ => {
+    // 		// if box_a.minimum.z_dir < box_b.minimum.z_dir {
+    // 		// 	Ordering::Less
+    // 		// } else if box_a.minimum.z_dir > box_b.minimum.z_dir {
+    // 		// 	Ordering::Greater
+    // 		// } else {
+    // 		// 	Ordering::Equal
+    // 		// }
+    // 		f64::partial_cmp(&box_a.minimum.z_dir, &box_b.minimum.z_dir)
+    // 	}
+    // }.unwrap()
 }

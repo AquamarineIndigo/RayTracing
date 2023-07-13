@@ -6,11 +6,14 @@ use basic::vec3::{
     vec3_add, /*vec3_mul, vec3_sub,vec3_dot, vec3_tri_add, random_unit_vector,  generate_unit_vector*/
     Vec3,
 };
+use object::Translate;
 // use object::ImageTexture;
 // use object::Textures;
 // use object::SolidColour;
 // use object::basic::vec3::vec3_vec_mul;
 use object::basic::random_double;
+use object::boxes::Boxes;
+use object::constant_medium::ConstantMedium;
 // use object::basic::random_range;
 use object::hittable::{HitRecord, Hittable};
 use object::material::DiffuseLight;
@@ -23,6 +26,7 @@ use object::hittable_list::HittableList;
 // extern crate rayon;
 // use rayon::prelude::*;
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
+use object::translation::RotateY;
 // use object::texture::CheckeredTexture;
 // use object::texture::NoiseTexture;
 use crate::object::material::{Lambertian, Metal /* , Dielectric, Material*/};
@@ -113,7 +117,31 @@ use std::thread;
 // 	world
 // }
 
-fn cornell_box() -> HittableList {
+// fn cornell_box() -> HittableList {
+// 	let mut world = HittableList { objects: Vec::new() };
+// 	let red =	Lambertian::new_from_colour(0.65, 0.05, 0.05);
+// 	let white =	Lambertian::new_from_colour(0.73, 0.73, 0.73);
+// 	let green =	Lambertian::new_from_colour(0.12, 0.45, 0.15);
+// 	let light =	DiffuseLight::new_from_colour(15.0, 15.0, 15.0);
+// 	world.add(XYRect::new(0.0, 555.0, 0.0, 555.0, 555.0, &white));
+// 	world.add(XZRect::new(213.0, 343.0, 227.0, 332.0, 554.0, &light));
+// 	world.add(XZRect::new(0.0, 555.0, 0.0, 555.0, 0.0, &white));
+// 	world.add(XZRect::new(0.0, 555.0, 0.0, 555.0, 555.0, &white));
+// 	world.add(YZRect::new(0.0, 555.0, 0.0, 555.0, 555.0, &green));
+// 	world.add(YZRect::new(0.0, 555.0, 0.0, 555.0, 0.0, &red));
+// 	// world.add(Boxes::new(&Vec3::set(130.0, 0.0, 65.0), &Vec3::set(295.0, 165.0, 230.0), &white));
+// 	// world.add(Boxes::new(&Vec3::set(265.0, 0.0, 295.0), &Vec3::set(430.0, 330.0, 460.0), &white));
+// 	let box1 = Boxes::new(&Vec3::set(0.0, 0.0, 0.0), &Vec3::set(165.0, 330.0, 165.0), &white);
+// 	let box1 = RotateY::new(Arc::new(box1), 15.0);
+// 	let box1 = Translate::new(Arc::new(box1), Vec3::set(265.0, 0.0, 295.0));
+// 	world.add(box1);
+// 	let box2 = Boxes::new(&Vec3::set(0.0, 0.0, 0.0), &Vec3::set(165.0, 165.0, 165.0), &white);
+// 	let box2 = RotateY::new(Arc::new(box2), -18.0);
+// 	let box2 = Translate::new(Arc::new(box2), Vec3::set(130.0, 0.0, 65.0));
+// 	world.add(box2);
+// 	world
+// }
+fn cornell_smoke() -> HittableList {
     let mut world = HittableList {
         objects: Vec::new(),
     };
@@ -122,11 +150,37 @@ fn cornell_box() -> HittableList {
     let green = Lambertian::new_from_colour(0.12, 0.45, 0.15);
     let light = DiffuseLight::new_from_colour(15.0, 15.0, 15.0);
     world.add(XYRect::new(0.0, 555.0, 0.0, 555.0, 555.0, &white));
-    world.add(XZRect::new(213.0, 343.0, 227.0, 332.0, 554.0, &light));
+    world.add(XZRect::new(113.0, 443.0, 127.0, 432.0, 554.0, &light));
     world.add(XZRect::new(0.0, 555.0, 0.0, 555.0, 0.0, &white));
     world.add(XZRect::new(0.0, 555.0, 0.0, 555.0, 555.0, &white));
     world.add(YZRect::new(0.0, 555.0, 0.0, 555.0, 555.0, &green));
     world.add(YZRect::new(0.0, 555.0, 0.0, 555.0, 0.0, &red));
+    // world.add(Boxes::new(&Vec3::set(130.0, 0.0, 65.0), &Vec3::set(295.0, 165.0, 230.0), &white));
+    // world.add(Boxes::new(&Vec3::set(265.0, 0.0, 295.0), &Vec3::set(430.0, 330.0, 460.0), &white));
+    let box1 = Boxes::new(
+        &Vec3::set(0.0, 0.0, 0.0),
+        &Vec3::set(165.0, 330.0, 165.0),
+        &white,
+    );
+    let box1 = RotateY::new(Arc::new(box1), 15.0);
+    let box1 = Translate::new(Arc::new(box1), Vec3::set(265.0, 0.0, 295.0));
+    world.add(ConstantMedium::new_from_colour(
+        Arc::new(box1),
+        0.01,
+        &Vec3::set(0.0, 0.0, 0.0),
+    ));
+    let box2 = Boxes::new(
+        &Vec3::set(0.0, 0.0, 0.0),
+        &Vec3::set(165.0, 165.0, 165.0),
+        &white,
+    );
+    let box2 = RotateY::new(Arc::new(box2), -18.0);
+    let box2 = Translate::new(Arc::new(box2), Vec3::set(130.0, 0.0, 65.0));
+    world.add(ConstantMedium::new_from_colour(
+        Arc::new(box2),
+        0.01,
+        &Vec3::set(1.0, 1.0, 1.0),
+    ));
     world
 }
 
@@ -157,9 +211,9 @@ fn get_id(i: &u32, j: &u32, width: &u32) -> usize {
 }
 
 fn main() {
-    let path = "output/book2/image2-14.jpg";
+    let path = "output/book2/image2-17.jpg";
     // let width: u32 = 800;
-    const WIDTH: u32 = 1280;
+    const WIDTH: u32 = 1024;
     let quality = 255;
     // let aspect_ratio: f64 = 16.0 / 9.0;
     // const ASPECTRATIO: f64 = 16.0 / 9.0;
@@ -184,7 +238,7 @@ fn main() {
     // 	TimeInterval::new(0.0, 1.0),
     // );
 
-    let world = cornell_box();
+    let world = cornell_smoke();
     // let background = Vec3::set(0.7, 0.8, 1.0);
     let background = Vec3::set(0.0, 0.0, 0.0);
     let look_from = Vec3::set(278.0, 278.0, -800.0);
