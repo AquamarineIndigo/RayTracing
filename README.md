@@ -1,3 +1,4 @@
+![](./output/book2/book2-final-scene.jpg)
 ![](./doc/assets/image-raytracing.png)
 
 # Summer-Ray-Tracer
