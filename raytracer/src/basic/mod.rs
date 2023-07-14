@@ -32,8 +32,3 @@ pub fn clamp(x: &f64, min: &f64, max: &f64) -> f64 {
     }
     *x
 }
-
-pub fn random_integer(tmin: i32, tmax: i32) -> i32 {
-    let mut rng = rand::thread_rng();
-    rng.gen_range(tmin..=tmax)
-}

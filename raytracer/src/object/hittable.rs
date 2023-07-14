@@ -1,86 +1,51 @@
 use super::basic::ray;
 use super::basic::vec3;
-use crate::object::aabb::AxisAlignedBoundingBoxes;
-use crate::object::material::Material;
-use std::sync::Arc;
+use crate::object::material::Materials;
 
-#[derive(Clone)]
+#[derive(Copy, Clone)]
 pub struct HitRecord {
     pub t: f64,
     pub p: vec3::Vec3,
     pub normal: vec3::Vec3,
     pub front_face: bool,
-    pub material: Arc<dyn Material>,
-    pub u: f64,
-    pub v: f64,
+    pub material: Materials,
 }
 
 impl HitRecord {
-    pub fn new<T: Material + Clone + 'static>(mat: &T) -> Self {
+    pub fn new(mat: &Materials) -> HitRecord {
         HitRecord {
             t: 0.0,
             p: vec3::Vec3::set(0.0, 0.0, 0.0),
             normal: vec3::Vec3::set(0.0, 0.0, 0.0),
             front_face: false,
-            material: Arc::new(mat.clone()),
-            u: 0.0,
-            v: 0.0,
+            material: *mat,
         }
     }
-    pub fn set<T: Material + Clone + 'static>(
+    pub fn set(
         t_other: f64,
         p_other: vec3::Vec3,
         normal_other: vec3::Vec3,
-        mat: &T,
-    ) -> Self {
+        mat: &Materials,
+    ) -> HitRecord {
         HitRecord {
             t: t_other,
             p: p_other,
             normal: normal_other,
             front_face: false,
-            material: Arc::new(mat.clone()),
-            u: 0.0,
-            v: 0.0,
+            material: *mat,
         }
     }
-    pub fn get_value<T: Material + Clone + 'static>(
+    pub fn get_value(
         &mut self,
         t_other: f64,
         p_other: vec3::Vec3,
         normal_other: vec3::Vec3,
-        mat: &T,
+        mat: &Materials,
     ) -> &Self {
         self.t = t_other;
         self.p = p_other;
         self.normal = normal_other;
-        self.material = Arc::new(mat.clone());
-        self
-    }
-    pub fn get_value_ptr(
-        &mut self,
-        t_other: f64,
-        p_other: vec3::Vec3,
-        normal_other: vec3::Vec3,
-        mat: Arc<dyn Material + Send + Sync + 'static>,
-    ) -> &Self {
-        self.t = t_other;
-        self.p = p_other;
-        self.normal = normal_other;
-        self.material = mat;
-        self
-    }
-    pub fn set_with_ptr(
-        &mut self,
-        t_other: f64,
-        p_other: vec3::Vec3,
-        u: f64,
-        v: f64,
-        mat: Arc<dyn Material + Send + Sync + 'static>,
-    ) -> &Self {
-        self.t = t_other;
-        self.p = p_other;
-        [self.u, self.v] = [u, v];
-        self.material = mat;
+        self.material = *mat;
         self
     }
     pub fn set_face_normal(&mut self, r: &ray::Ray, outward_normal: &vec3::Vec3) {
@@ -89,7 +54,7 @@ impl HitRecord {
             self.normal = *outward_normal;
         } else {
             self.front_face = false;
-            self.normal = -*outward_normal;
+            self.normal = vec3::vec3_mul(&(-1.0), outward_normal);
         }
     }
     // pub fn clone(&self) -> Self {
@@ -102,14 +67,8 @@ impl HitRecord {
     // }
 }
 
-pub trait Hittable: Send + Sync {
+pub trait Hittable {
     fn hit(&self, r: &ray::Ray, t_min: &f64, t_max: &f64, rec: &mut HitRecord) -> bool;
-    fn bounding_box(
-        &self,
-        time0: f64,
-        time1: f64,
-        output_box: &mut AxisAlignedBoundingBoxes,
-    ) -> bool;
 }
 
 // impl Default for HitRecord {
