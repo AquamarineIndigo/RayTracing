@@ -20,7 +20,8 @@ pub fn random_double() -> f64 {
 }
 
 pub fn random_range(min: f64, max: f64) -> f64 {
-    min + (max - min) * random_double()
+    let mut rng = rand::thread_rng();
+    rng.gen_range(min..=max)
 }
 
 pub fn clamp(x: &f64, min: &f64, max: &f64) -> f64 {
