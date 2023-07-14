@@ -92,6 +92,9 @@ impl Vec3 {
         [self.x_dir, self.y_dir, self.z_dir] = [a, b, c];
         self
     }
+    pub fn length(&self) -> f64 {
+        (self.x_dir.powi(2) + self.y_dir.powi(2) + self.z_dir.powi(2)).sqrt()
+    }
 }
 
 pub fn generate_unit_vector(direction: &Vec3) -> Vec3 {
@@ -107,7 +110,7 @@ pub fn generate_unit_vector(direction: &Vec3) -> Vec3 {
 pub fn random_in_unit_sphere() -> Vec3 {
     loop {
         let p = Vec3::random_vector();
-        if vec3_dot(&p, &p) >= 1.0 {
+        if p.length() >= 1.0 {
             continue;
         }
         return p;

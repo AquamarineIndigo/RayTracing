@@ -26,7 +26,7 @@ impl Camera {
         vfov: f64, // vfov -> vertical field-of-view in degrees
         aspect_ratio: f64,
         aperture: f64,
-        focus_disk: f64,
+        focus_dist: f64,
     ) -> Self {
         let theta = degrees_to_radians(&vfov);
         let h = (theta / 2.0).tan();
@@ -36,8 +36,8 @@ impl Camera {
         let w_ = generate_unit_vector(&vec3_sub(look_from, look_at));
         let u_ = generate_unit_vector(&vec3_product(vup, &w_));
         let v_ = vec3_product(&w_, &u_);
-        let horizontal_ = vec3_mul(&(viewpoint_width * focus_disk), &u_);
-        let vertical_ = vec3_mul(&(viewpoint_height * focus_disk), &v_);
+        let horizontal_ = vec3_mul(&(viewpoint_width * focus_dist), &u_);
+        let vertical_ = vec3_mul(&(viewpoint_height * focus_dist), &v_);
         Camera {
             origin: *look_from,
             horizontal: horizontal_,
@@ -47,7 +47,7 @@ impl Camera {
                 &vec3_tri_add(
                     &vec3_mul(&0.5, &horizontal_),
                     &vec3_mul(&0.5, &vertical_),
-                    &vec3_mul(&focus_disk, &w_),
+                    &vec3_mul(&focus_dist, &w_),
                 ),
             ),
             u: u_,
