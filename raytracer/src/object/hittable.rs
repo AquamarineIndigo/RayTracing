@@ -1,5 +1,6 @@
 use super::basic::ray;
 use super::basic::vec3;
+use crate::object::aabb::AxisAlignedBoundingBoxes;
 use crate::object::material::Materials;
 
 #[derive(Copy, Clone)]
@@ -9,16 +10,20 @@ pub struct HitRecord {
     pub normal: vec3::Vec3,
     pub front_face: bool,
     pub material: Materials,
+    pub u: f64,
+    pub v: f64,
 }
 
 impl HitRecord {
-    pub fn new(mat: &Materials) -> HitRecord {
+    pub fn new(mat: &Materials) -> Self {
         HitRecord {
             t: 0.0,
             p: vec3::Vec3::set(0.0, 0.0, 0.0),
             normal: vec3::Vec3::set(0.0, 0.0, 0.0),
             front_face: false,
             material: *mat,
+            u: 0.0,
+            v: 0.0,
         }
     }
     pub fn set(
@@ -26,13 +31,15 @@ impl HitRecord {
         p_other: vec3::Vec3,
         normal_other: vec3::Vec3,
         mat: &Materials,
-    ) -> HitRecord {
+    ) -> Self {
         HitRecord {
             t: t_other,
             p: p_other,
             normal: normal_other,
             front_face: false,
             material: *mat,
+            u: 0.0,
+            v: 0.0,
         }
     }
     pub fn get_value(
@@ -69,6 +76,12 @@ impl HitRecord {
 
 pub trait Hittable {
     fn hit(&self, r: &ray::Ray, t_min: &f64, t_max: &f64, rec: &mut HitRecord) -> bool;
+    fn bounding_box(
+        &self,
+        time0: f64,
+        time1: f64,
+        output_box: &mut AxisAlignedBoundingBoxes,
+    ) -> bool;
 }
 
 // impl Default for HitRecord {

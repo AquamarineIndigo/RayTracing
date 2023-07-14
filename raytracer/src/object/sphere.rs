@@ -1,3 +1,5 @@
+use std::f64::consts::PI;
+
 use crate::basic::ray; // as ray;
 use crate::basic::vec3;
 use crate::basic::vec3::vec3_add;
@@ -5,6 +7,7 @@ use crate::basic::vec3::vec3_mul;
 use crate::basic::vec3::vec3_sub;
 // as vector3;
 use crate::basic::vec3::Vec3;
+use crate::object::aabb::{surrounding_box, AxisAlignedBoundingBoxes};
 use crate::object::hittable; // as hitable;
 use crate::object::material::Materials;
 
@@ -22,6 +25,12 @@ impl Sphere {
             radius: r,
             material: *mat,
         }
+    }
+    fn get_sphere_uv(p: &Vec3, u: &mut f64, v: &mut f64) {
+        let theta = (-p.y_dir).acos();
+        let phi = p.x_dir.atan2(-p.z_dir) + PI;
+        *u = phi / (2.0 * PI);
+        *v = theta / PI;
     }
 }
 
@@ -58,6 +67,26 @@ impl hittable::Hittable for Sphere {
             &vec3::vec3_sub(&point_at, &self.center),
         );
         rec.set_face_normal(r, &outward_normal);
+        Sphere::get_sphere_uv(&outward_normal, &mut rec.u, &mut rec.v);
+        true
+    }
+
+    fn bounding_box(
+        &self,
+        _time0: f64,
+        _time1: f64,
+        output_box: &mut AxisAlignedBoundingBoxes,
+    ) -> bool {
+        output_box.set(
+            vec3_sub(
+                &self.center,
+                &Vec3::set(self.radius, self.radius, self.radius),
+            ),
+            vec3_add(
+                &self.center,
+                &Vec3::set(self.radius, self.radius, self.radius),
+            ),
+        );
         true
     }
 }
@@ -126,6 +155,37 @@ impl hittable::Hittable for MovingSphere {
         );
         rec.get_value(root, point_at, outward_normal, &self.material);
         rec.set_face_normal(r, &outward_normal);
+        true
+    }
+
+    fn bounding_box(
+        &self,
+        time0: f64,
+        time1: f64,
+        output_box: &mut AxisAlignedBoundingBoxes,
+    ) -> bool {
+        let box0 = AxisAlignedBoundingBoxes::new(
+            vec3_sub(
+                &self.center(time0),
+                &Vec3::set(self.radius, self.radius, self.radius),
+            ),
+            vec3_add(
+                &self.center(time0),
+                &Vec3::set(self.radius, self.radius, self.radius),
+            ),
+        );
+        let box1 = AxisAlignedBoundingBoxes::new(
+            vec3_sub(
+                &self.center(time1),
+                &Vec3::set(self.radius, self.radius, self.radius),
+            ),
+            vec3_add(
+                &self.center(time1),
+                &Vec3::set(self.radius, self.radius, self.radius),
+            ),
+        );
+        let sur = surrounding_box(&box0, &box1);
+        output_box.copy_from_other(&sur);
         true
     }
 }

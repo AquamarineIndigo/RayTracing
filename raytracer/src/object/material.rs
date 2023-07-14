@@ -1,4 +1,7 @@
 use super::hittable::HitRecord;
+use super::texture::Textures; //, CheckeredTexture};
+                              // use super::texture::Textures;
+use super::{SolidColour, Texture};
 use crate::basic::random_double;
 use crate::basic::ray::Ray;
 use crate::basic::vec3::{
@@ -18,8 +21,14 @@ pub trait Material {
 
 #[derive(Copy, Clone)]
 pub struct Lambertian {
-    pub albedo: Vec3,
+    // pub albedo: Vec3,
+    pub albedo: Textures,
 }
+// #[derive(Copy, Clone)]
+// pub struct LambertianCheckered {
+// 	// pub albedo: Vec3,
+// 	pub albedo: CheckeredTexture,
+// }
 #[derive(Copy, Clone)]
 pub struct Metal {
     pub albedo: Vec3,
@@ -33,12 +42,17 @@ pub struct Dielectric {
 impl Lambertian {
     // default material
     pub fn new_from_vector(a: &Vec3) -> Self {
-        Lambertian { albedo: *a }
+        Self {
+            albedo: Textures::Solid(SolidColour::new_from_vector(a)),
+        }
     }
     pub fn set(a: f64, b: f64, c: f64) -> Self {
         Self {
-            albedo: Vec3::set(a, b, c),
+            albedo: Textures::Solid(SolidColour::new_from_rgb(a, b, c)),
         }
+    }
+    pub fn new_from_textures(a: &Textures) -> Self {
+        Self { albedo: *a }
     }
 }
 impl Metal {
@@ -67,6 +81,13 @@ impl Dielectric {
         r0 + (1.0 - r0) * (1.0 - cos).powi(5)
     }
 }
+// impl LambertianCheckered{
+// 	pub fn new(a: &CheckeredTexture) -> Self {
+// 		Self {
+// 			albedo: *a,
+// 		}
+// 	}
+// }
 
 impl Material for Lambertian {
     fn scatter(
@@ -81,7 +102,14 @@ impl Material for Lambertian {
             scatter_direction.copy_vector(&rec.normal);
         }
         scattered.set_value(rec.p, scatter_direction, r_in.tm);
-        attenuation.copy_vector(&self.albedo);
+        match self.albedo {
+            Textures::Checkered(c) => {
+                attenuation.copy_vector(&c.value(rec.u, rec.v, &rec.p));
+            }
+            Textures::Solid(s) => {
+                attenuation.copy_vector(&s.value(rec.u, rec.v, &rec.p));
+            }
+        }
         true
     }
 }
@@ -141,6 +169,17 @@ impl Material for Dielectric {
         true
     }
 }
+// impl Material for LambertianCheckered {
+// 	fn scatter(&self, r_in: &Ray, rec: &HitRecord, attenuation: &mut Vec3, scattered: &mut Ray) -> bool {
+// 		let mut scatter_direction = vec3_add(&rec.normal, &random_unit_vector());
+// 		if scatter_direction.near_zero() {
+// 			scatter_direction.copy_vector(&rec.normal);
+// 		}
+// 		scattered.set_value(rec.p, scatter_direction, r_in.tm);
+// 		attenuation.copy_vector(&self.albedo.value(rec.u, rec.v, &rec.p));
+// 		true
+// 	}
+// }
 
 #[derive(Copy, Clone)]
 pub enum Materials {
@@ -165,13 +204,13 @@ impl Material for Materials {
     }
 }
 
-impl Default for Lambertian {
-    fn default() -> Self {
-        Lambertian {
-            albedo: Vec3::set(0.0, 0.0, 0.0),
-        }
-    }
-}
+// impl Default for Lambertian {
+// 	fn default() -> Self {
+// 		Lambertian {
+// 			albedo: Textures::Solid(SolidColour::new_from_rgb(0.0, 0.0, 0.0))
+// 		}
+// 	}
+// }
 impl Default for Metal {
     fn default() -> Self {
         Metal {

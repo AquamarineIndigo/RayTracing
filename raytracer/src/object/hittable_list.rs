@@ -3,10 +3,12 @@ use crate::basic::ray; // as ray;
 use crate::object::hittable::{HitRecord, Hittable}; // as hitable;
 use crate::object::sphere;
 
+use super::{surrounding_box, AxisAlignedBoundingBoxes};
+
 #[derive(Clone)]
 pub enum Objects {
     SphereShape(sphere::Sphere),
-    MovineSphere(sphere::MovingSphere),
+    MovingSphere(sphere::MovingSphere),
     List(HittableList),
 }
 
@@ -26,6 +28,9 @@ impl HittableList {
     pub fn clear(&mut self) {
         self.objects.clear();
     }
+    pub fn empty(&self) -> bool {
+        self.objects.is_empty()
+    }
 }
 
 impl Hittable for HittableList {
@@ -44,7 +49,7 @@ impl Hittable for HittableList {
                         rec.material = s.material;
                     }
                 }
-                Objects::MovineSphere(s) => {
+                Objects::MovingSphere(s) => {
                     if s.hit(r, t_min, &closest_so_far, &mut temp_rec) {
                         hit_anything = true;
                         closest_so_far = temp_rec.t;
@@ -64,5 +69,46 @@ impl Hittable for HittableList {
             // }
         }
         hit_anything
+    }
+
+    fn bounding_box(
+        &self,
+        time0: f64,
+        time1: f64,
+        output_box: &mut AxisAlignedBoundingBoxes,
+    ) -> bool {
+        if self.empty() {
+            return false;
+        }
+        let mut temp_box = AxisAlignedBoundingBoxes::default();
+        let mut first_box = true;
+        for i in &self.objects {
+            match i {
+                Objects::SphereShape(s) => {
+                    if !s.bounding_box(time0, time1, &mut temp_box) {
+                        return false;
+                    }
+                    if first_box {
+                        output_box.copy_from_other(&temp_box);
+                        first_box = false;
+                    } else {
+                        output_box.copy_from_other(&surrounding_box(output_box, &temp_box));
+                    }
+                }
+                Objects::MovingSphere(s) => {
+                    if !s.bounding_box(time0, time1, &mut temp_box) {
+                        return false;
+                    }
+                    if first_box {
+                        output_box.copy_from_other(&temp_box);
+                        first_box = false;
+                    } else {
+                        output_box.copy_from_other(&surrounding_box(output_box, &temp_box));
+                    }
+                }
+                _ => {}
+            }
+        }
+        true
     }
 }

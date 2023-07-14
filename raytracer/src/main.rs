@@ -12,11 +12,13 @@ use object::basic::{random_double, random_range};
 use object::hittable::{HitRecord, Hittable};
 use object::hittable_list::{HittableList, Objects};
 use object::sphere::{MovingSphere, Sphere};
+use object::{SolidColour, Textures};
 // use rand::random;
 // extern crate rayon;
 // use rayon::prelude::*;
 use crate::object::material::{Dielectric, Lambertian, Material, Materials, Metal};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
+use object::texture::CheckeredTexture;
 use std::{fs::File, process::exit};
 
 use crate::basic::camera::{write_colour, Camera, CameraCharacteristics, TimeInterval};
@@ -28,7 +30,12 @@ fn random_scene() -> HittableList {
     let mut world = HittableList {
         objects: Vec::new(),
     };
-    let mat_ground = Materials::LambertianMaterials(Lambertian::set(0.5, 0.5, 0.5));
+
+    let checker = Textures::Checkered(CheckeredTexture::new(
+        Textures::Solid(SolidColour::new_from_rgb(0.2, 0.3, 0.1)),
+        Textures::Solid(SolidColour::new_from_rgb(0.9, 0.9, 0.9)),
+    ));
+    let mat_ground = Materials::LambertianMaterials(Lambertian::new_from_textures(&checker));
     world.add(Objects::SphereShape(Sphere::set(
         Vec3::set(0.0, -1000.0, 0.0),
         1000.0,
@@ -50,7 +57,7 @@ fn random_scene() -> HittableList {
                     let center2 = vec3_add(&center, &Vec3::set(0.0, random_range(0.0, 0.5), 0.0));
                     let mat_sphere =
                         Materials::LambertianMaterials(Lambertian::new_from_vector(&albedo));
-                    world.add(Objects::MovineSphere(MovingSphere::set(
+                    world.add(Objects::MovingSphere(MovingSphere::set(
                         &center,
                         &center2,
                         0.0,
@@ -80,7 +87,7 @@ fn random_scene() -> HittableList {
     }
     let mat1 = Materials::DielectricMaterials(Dielectric::set(1.8));
     let mat2 = Materials::LambertianMaterials(Lambertian::set(0.4, 0.2, 0.1));
-    let mat3 = Materials::MetalMaterials(Metal::set(0.5, 0.7, 0.6, 0.0));
+    let mat3 = Materials::MetalMaterials(Metal::set(0.7, 0.8, 0.7, 0.0));
     world.add(Objects::SphereShape(Sphere::set(
         Vec3::set(0.0, 1.0, 0.0),
         1.0,
@@ -132,7 +139,7 @@ fn get_id(i: &u32, j: &u32, width: &u32) -> usize {
 }
 
 fn main() {
-    let path = "output/book2/image2-1.jpg";
+    let path = "output/book2/image2-2.jpg";
     // let width: u32 = 800;
     const WIDTH: u32 = 1280;
     let quality = 255;
