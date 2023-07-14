@@ -2,8 +2,8 @@ pub mod basic;
 pub mod object;
 use basic::ray::Ray;
 use basic::vec3::{
-    /*vec3_sub,vec3_tri_add, random_unit_vector,*/ generate_unit_vector, vec3_add,
-    /*vec3_dot,*/ vec3_mul, Vec3,
+    /*vec3_tri_add, random_unit_vector,*/ generate_unit_vector, vec3_add, vec3_dot, vec3_mul,
+    vec3_sub, Vec3,
 };
 use object::basic::vec3::vec3_vec_mul;
 // use object::basic::vec3::vec3_tri_add;
@@ -72,9 +72,9 @@ fn get_id(i: &u32, j: &u32, width: &u32) -> usize {
 }
 
 fn main() {
-    let path = "output/book1/image1-19.jpg";
+    let path = "output/book1/image1-20.jpg";
     // let width: u32 = 800;
-    const WIDTH: u32 = 4096;
+    const WIDTH: u32 = 8192;
     let quality = 255;
     // let aspect_ratio: f64 = 16.0 / 9.0;
     const ASPECTRATIO: f64 = 16.0 / 9.0;
@@ -119,17 +119,28 @@ fn main() {
         0.5,
         &mat_right,
     )));
+    let look_from = Vec3::set(3.0, 3.0, 2.0);
+    let look_at = Vec3::set(0.0, 0.0, -1.0);
+    let vup = Vec3::set(0.0, 1.0, 0.0);
+    const APERTURE: f64 = 2.0;
+    let dist_to_focus = vec3_dot(
+        &vec3_sub(&look_from, &look_at),
+        &vec3_sub(&look_from, &look_at),
+    )
+    .sqrt();
 
     // let cam: Camera = Camera::new(
     // 	&Vec3::set(-2.0, 2.0, 1.0), &Vec3::set(0.0, 0.0, -1.0),
     // 	&Vec3::set(0.0, 1.0, 0.0), 90.0, ASPECTRATIO
     // );
     let cam: Camera = Camera::new(
-        &Vec3::set(-2.0, 2.0, 1.0),
-        &Vec3::set(0.0, 0.0, -1.0),
-        &Vec3::set(0.0, 1.0, 0.0),
+        &look_from,
+        &look_at,
+        &vup,
         20.0,
         ASPECTRATIO,
+        APERTURE,
+        dist_to_focus,
     );
 
     // let mut pixel_rgb = Box::new([Mem::new(); ((HEIGHT * WIDTH) as usize)]);

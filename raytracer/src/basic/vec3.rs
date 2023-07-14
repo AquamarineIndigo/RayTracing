@@ -147,3 +147,12 @@ pub fn refract(uv: &Vec3, n: &Vec3, eta_i_over_eta_t: &f64) -> Vec3 {
     );
     vec3_add(&r_out_perpendicular, &r_out_parallel)
 }
+
+pub fn random_in_unit_disk() -> Vec3 {
+    loop {
+        let p = Vec3::set(random_range(-1.0, 1.0), random_range(-1.0, 1.0), 0.0);
+        if vec3_dot(&p, &p) < 1.0 {
+            return p;
+        }
+    }
+}
