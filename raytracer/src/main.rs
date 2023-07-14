@@ -11,7 +11,7 @@ use object::basic::vec3::vec3_vec_mul;
 use object::basic::{random_double, random_range};
 use object::hittable::{HitRecord, Hittable};
 use object::hittable_list::{HittableList, Objects};
-use object::sphere::Sphere;
+use object::sphere::{MovingSphere, Sphere};
 // use rand::random;
 // extern crate rayon;
 // use rayon::prelude::*;
@@ -19,7 +19,7 @@ use crate::object::material::{Dielectric, Lambertian, Material, Materials, Metal
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use std::{fs::File, process::exit};
 
-use crate::basic::camera::{write_colour, Camera};
+use crate::basic::camera::{write_colour, Camera, CameraCharacteristics, TimeInterval};
 use std::sync::mpsc;
 use std::sync::Arc;
 use std::thread;
@@ -44,13 +44,21 @@ fn random_scene() -> HittableList {
                 (b as f64) + 0.9 * random_double(),
             );
             if vec3_sub(&center, &Vec3::set(4.0, 0.2, 0.0)).length() > 0.9 {
-                if choose_mat < 0.4 {
+                if choose_mat < 0.6 {
                     // diffuse -> Lambertian
                     let albedo = vec3_vec_mul(&Vec3::random_vector(), &Vec3::random_vector());
+                    let center2 = vec3_add(&center, &Vec3::set(0.0, random_range(0.0, 0.5), 0.0));
                     let mat_sphere =
                         Materials::LambertianMaterials(Lambertian::new_from_vector(&albedo));
-                    world.add(Objects::SphereShape(Sphere::set(center, 0.2, &mat_sphere)));
-                } else if choose_mat < 0.8 {
+                    world.add(Objects::MovineSphere(MovingSphere::set(
+                        &center,
+                        &center2,
+                        0.0,
+                        1.0,
+                        0.2,
+                        &mat_sphere,
+                    )));
+                } else if choose_mat < 0.9 {
                     // metal
                     let albedo = Vec3::random_vector_range(&0.5, &1.0);
                     let fuzz = random_range(0.0, 0.5);
@@ -63,7 +71,7 @@ fn random_scene() -> HittableList {
                     world.add(Objects::SphereShape(Sphere::set(center, 0.2, &mat_sphere)));
                     world.add(Objects::SphereShape(Sphere::set(
                         center,
-                        -0.17,
+                        -0.15,
                         &mat_sphere,
                     ))); // hollow
                 }
@@ -72,7 +80,7 @@ fn random_scene() -> HittableList {
     }
     let mat1 = Materials::DielectricMaterials(Dielectric::set(1.8));
     let mat2 = Materials::LambertianMaterials(Lambertian::set(0.4, 0.2, 0.1));
-    let mat3 = Materials::MetalMaterials(Metal::set(0.4, 1.0, 0.7, 0.0));
+    let mat3 = Materials::MetalMaterials(Metal::set(0.5, 0.7, 0.6, 0.0));
     world.add(Objects::SphereShape(Sphere::set(
         Vec3::set(0.0, 1.0, 0.0),
         1.0,
@@ -124,7 +132,7 @@ fn get_id(i: &u32, j: &u32, width: &u32) -> usize {
 }
 
 fn main() {
-    let path = "output/book1/image1-21.jpg";
+    let path = "output/book2/image2-1.jpg";
     // let width: u32 = 800;
     const WIDTH: u32 = 1280;
     let quality = 255;
@@ -132,23 +140,10 @@ fn main() {
     const ASPECTRATIO: f64 = 16.0 / 9.0;
     // let height: u32 = ((width as f64) / aspect_ratio) as u32;
     const HEIGHT: u32 = ((WIDTH as f64) / ASPECTRATIO) as u32;
-    let sample_per_pixel = 500;
+    let sample_per_pixel = 100;
     let mut img: RgbImage = ImageBuffer::new(WIDTH, HEIGHT);
     let max_depth = 50;
 
-    // let mut world = HittableList { objects: Vec::new() };
-    // let mat_ground = Materials::LambertianMaterials(Lambertian::set(0.8, 0.8, 0.0));
-    // let mat_center = Materials::LambertianMaterials(Lambertian::set(0.1, 0.2, 0.5));
-    // // let mat_left = Materials::MetalMaterials(Metal::set(0.8, 0.8, 0.8, 0.3));
-    // let mat_right = Materials::MetalMaterials(Metal::set(0.8, 0.6, 0.2, 0.0));
-    // // let mat_center = Materials::DielectricMaterials(Dielectric::set(1.5));
-    // let mat_left = Materials::DielectricMaterials(Dielectric::set(1.5));
-
-    // world.add(Objects::SphereShape(Sphere::set(Vec3::set(0.0, -100.5, -1.0), 100.0, &mat_ground)));
-    // world.add(Objects::SphereShape(Sphere::set(Vec3::set(0.0, 0.0, -1.0), 0.5, &mat_center)));
-    // world.add(Objects::SphereShape(Sphere::set(Vec3::set(-1.0, 0.0, -1.0), 0.5, &mat_left)));
-    // world.add(Objects::SphereShape(Sphere::set(Vec3::set(-1.0, 0.0, -1.0), -0.4, &mat_left))); // hollow
-    // world.add(Objects::SphereShape(Sphere::set(Vec3::set(1.0, 0.0, -1.0), 0.5, &mat_right)));
     let world = random_scene();
     let look_from = Vec3::set(13.0, 2.0, 3.0);
     let look_at = Vec3::set(0.0, 0.0, 0.0);
@@ -161,10 +156,8 @@ fn main() {
         &look_from,
         &look_at,
         &vup,
-        20.0,
-        ASPECTRATIO,
-        APERTURE,
-        dist_to_focus,
+        CameraCharacteristics::new(20.0, ASPECTRATIO, APERTURE, dist_to_focus),
+        TimeInterval::new(0.0, 1.0),
     );
 
     const THREAD_NUMBER: i32 = 10;

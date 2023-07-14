@@ -1,5 +1,10 @@
 use crate::basic::ray; // as ray;
-use crate::basic::vec3; // as vector3;
+use crate::basic::vec3;
+use crate::basic::vec3::vec3_add;
+use crate::basic::vec3::vec3_mul;
+use crate::basic::vec3::vec3_sub;
+// as vector3;
+use crate::basic::vec3::Vec3;
 use crate::object::hittable; // as hitable;
 use crate::object::material::Materials;
 
@@ -11,8 +16,8 @@ pub struct Sphere {
 }
 
 impl Sphere {
-    pub fn set(cen: vec3::Vec3, r: f64, mat: &Materials) -> Sphere {
-        Sphere {
+    pub fn set(cen: vec3::Vec3, r: f64, mat: &Materials) -> Self {
+        Self {
             center: cen,
             radius: r,
             material: *mat,
@@ -52,6 +57,74 @@ impl hittable::Hittable for Sphere {
             &(1.0 / self.radius),
             &vec3::vec3_sub(&point_at, &self.center),
         );
+        rec.set_face_normal(r, &outward_normal);
+        true
+    }
+}
+
+#[derive(Copy, Clone)]
+pub struct MovingSphere {
+    pub center0: Vec3,
+    pub center1: Vec3,
+    pub time0: f64,
+    pub time1: f64,
+    pub radius: f64,
+    pub material: Materials,
+}
+
+impl MovingSphere {
+    pub fn set(
+        center0: &Vec3,
+        center1: &Vec3,
+        time0: f64,
+        time1: f64,
+        radius: f64,
+        material: &Materials,
+    ) -> Self {
+        Self {
+            center0: *center0,
+            center1: *center1,
+            time0,
+            time1,
+            radius,
+            material: *material,
+        }
+    }
+    pub fn center(&self, tm: f64) -> Vec3 {
+        vec3_add(
+            &self.center0,
+            &vec3_mul(
+                &((tm - self.time0) / (self.time1 - self.time0)),
+                &vec3_sub(&self.center1, &self.center0),
+            ),
+        )
+    }
+}
+
+impl hittable::Hittable for MovingSphere {
+    fn hit(&self, r: &ray::Ray, t_min: &f64, t_max: &f64, rec: &mut hittable::HitRecord) -> bool {
+        let oc = vec3::vec3_sub(&r.origin, &self.center(r.tm));
+        let a: f64 = vec3::vec3_dot(&r.direction, &r.direction);
+        let half_b: f64 = vec3::vec3_dot(&oc, &r.direction); // b -> half_b
+        let c: f64 = vec3::vec3_dot(&oc, &oc) - self.radius * self.radius;
+        let discriminant: f64 = half_b * half_b - a * c;
+        if discriminant < 0.0 {
+            return false;
+        }
+        let sqrt_d = (half_b * half_b - a * c).sqrt();
+        let mut root: f64 = (-half_b - sqrt_d) / a;
+        if root < *t_min || *t_max < root {
+            root = (-half_b + sqrt_d) / a;
+            if root < *t_min || *t_max < root {
+                return false;
+            }
+        }
+        let point_at = r.point_at_parameter(&root);
+        let outward_normal: Vec3 = vec3_mul(
+            &(1.0 / self.radius),
+            &vec3::vec3_sub(&point_at, &self.center(r.tm)),
+        );
+        rec.get_value(root, point_at, outward_normal, &self.material);
         rec.set_face_normal(r, &outward_normal);
         true
     }
