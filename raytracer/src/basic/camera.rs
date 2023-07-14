@@ -1,6 +1,6 @@
 use super::clamp;
 use super::ray::Ray;
-use super::vec3::{vec3_mul, vec3_sub, vec3_tri_add, Vec3};
+use super::vec3::{generate_unit_vector, vec3_mul, vec3_product, vec3_sub, vec3_tri_add, Vec3};
 use crate::basic::degrees_to_radians;
 
 #[derive(Copy, Clone)]
@@ -12,27 +12,33 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new(vfov: f64, aspect_ratio: f64) -> Self {
-        // vfov -> vertical field-of-view in degrees
+    pub fn new(
+        look_from: &Vec3,
+        look_at: &Vec3,
+        vup: &Vec3,
+        vfov: f64, // vfov -> vertical field-of-view in degrees
+        aspect_ratio: f64,
+    ) -> Self {
         let theta = degrees_to_radians(&vfov);
         let h = (theta / 2.0).tan();
         let viewpoint_height = 2.0 * h;
         let viewpoint_width = aspect_ratio * viewpoint_height;
 
-        let focal_length = 1.0;
-        let origin_ = Vec3::set(0.0, 0.0, 0.0);
-        let horizontal_ = Vec3::set(viewpoint_width, 0.0, 0.0);
-        let vertical_ = Vec3::set(0.0, viewpoint_height, 0.0);
+        let w = generate_unit_vector(&vec3_sub(look_from, look_at));
+        let u = generate_unit_vector(&vec3_product(vup, &w));
+        let v = vec3_product(&w, &u);
+        let horizontal_ = vec3_mul(&viewpoint_width, &u);
+        let vertical_ = vec3_mul(&viewpoint_height, &v);
         Camera {
-            origin: origin_,
+            origin: *look_from,
             horizontal: horizontal_,
             vertical: vertical_,
             lower_left_corner: vec3_sub(
-                &origin_,
+                look_from,
                 &vec3_tri_add(
                     &vec3_mul(&0.5, &horizontal_),
                     &vec3_mul(&0.5, &vertical_),
-                    &Vec3::set(0.0, 0.0, focal_length),
+                    &w,
                 ),
             ),
         }
@@ -40,19 +46,22 @@ impl Camera {
     pub fn get_ray(&self, u: &f64, v: &f64) -> Ray {
         Ray::set(
             self.origin,
-            vec3_tri_add(
-                &self.lower_left_corner,
-                &vec3_mul(u, &self.horizontal),
-                &vec3_mul(v, &self.vertical),
+            vec3_sub(
+                &vec3_tri_add(
+                    &self.lower_left_corner,
+                    &vec3_mul(u, &self.horizontal),
+                    &vec3_mul(v, &self.vertical),
+                ),
+                &self.origin,
             ),
         )
     }
 }
-impl Default for Camera {
-    fn default() -> Self {
-        Self::new(90.0, 16.0 / 9.0)
-    }
-}
+// impl Default for Camera {
+// 	fn default() -> Self {
+// 		Self::new(90.0, 16.0 / 9.0)
+// 	}
+// }
 
 pub fn write_colour(pixel_colour: &Vec3, sample_per_pixel: &i32) -> Vec<u8> {
     let scale: f64 = 1.0 / (*sample_per_pixel as f64);

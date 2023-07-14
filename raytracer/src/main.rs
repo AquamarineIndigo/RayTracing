@@ -15,9 +15,8 @@ use object::sphere::Sphere;
 // use rand::random;
 // extern crate rayon;
 // use rayon::prelude::*;
-use crate::object::material::{Lambertian, Material, Materials /* , Dielectric*/, Metal};
+use crate::object::material::{Dielectric, Lambertian, Material, Materials, Metal};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
-use std::f64::consts::PI;
 use std::{fs::File, process::exit};
 
 use crate::basic::camera::{write_colour, Camera};
@@ -73,9 +72,9 @@ fn get_id(i: &u32, j: &u32, width: &u32) -> usize {
 }
 
 fn main() {
-    let path = "output/book1/image1-17.jpg";
+    let path = "output/book1/image1-19.jpg";
     // let width: u32 = 800;
-    const WIDTH: u32 = 1920;
+    const WIDTH: u32 = 4096;
     let quality = 255;
     // let aspect_ratio: f64 = 16.0 / 9.0;
     const ASPECTRATIO: f64 = 16.0 / 9.0;
@@ -84,33 +83,54 @@ fn main() {
     let sample_per_pixel = 100;
     let mut img: RgbImage = ImageBuffer::new(WIDTH, HEIGHT);
     let max_depth = 50;
-    let r_ = (PI / 4.0).cos();
 
     let mut world = HittableList {
         objects: Vec::new(),
     };
-    // let mat_ground = Materials::LambertianMaterials(Lambertian::set(0.8, 0.8, 0.0));
-    // let mat_center = Materials::LambertianMaterials(Lambertian::set(0.1, 0.2, 0.5));
+    let mat_ground = Materials::LambertianMaterials(Lambertian::set(0.8, 0.8, 0.0));
+    let mat_center = Materials::LambertianMaterials(Lambertian::set(0.1, 0.2, 0.5));
     // let mat_left = Materials::MetalMaterials(Metal::set(0.8, 0.8, 0.8, 0.3));
-    let mat_right = Materials::LambertianMaterials(Lambertian::set(1.0, 0.0, 0.0));
+    let mat_right = Materials::MetalMaterials(Metal::set(0.8, 0.6, 0.2, 0.0));
     // let mat_center = Materials::DielectricMaterials(Dielectric::set(1.5));
-    let mat_left = Materials::LambertianMaterials(Lambertian::set(0.0, 0.0, 1.0));
+    let mat_left = Materials::DielectricMaterials(Dielectric::set(1.5));
 
-    // world.add(Objects::SphereShape(Sphere::set(Vec3::set(0.0, -100.5, -1.0), 100.0, &mat_ground)));
-    // world.add(Objects::SphereShape(Sphere::set(Vec3::set(0.0, 0.0, -1.0), 0.5, &mat_center)));
     world.add(Objects::SphereShape(Sphere::set(
-        Vec3::set(-r_, 0.0, -1.0),
-        r_,
+        Vec3::set(0.0, -100.5, -1.0),
+        100.0,
+        &mat_ground,
+    )));
+    world.add(Objects::SphereShape(Sphere::set(
+        Vec3::set(0.0, 0.0, -1.0),
+        0.5,
+        &mat_center,
+    )));
+    world.add(Objects::SphereShape(Sphere::set(
+        Vec3::set(-1.0, 0.0, -1.0),
+        0.5,
         &mat_left,
     )));
-    // world.add(Objects::SphereShape(Sphere::set(Vec3::set(-1.0, 0.0, -1.0), -0.4, &mat_left))); // hollow
     world.add(Objects::SphereShape(Sphere::set(
-        Vec3::set(r_, 0.0, -1.0),
-        r_,
+        Vec3::set(-1.0, 0.0, -1.0),
+        -0.4,
+        &mat_left,
+    ))); // hollow
+    world.add(Objects::SphereShape(Sphere::set(
+        Vec3::set(1.0, 0.0, -1.0),
+        0.5,
         &mat_right,
     )));
 
-    let cam: Camera = Camera::new(90.0, ASPECTRATIO);
+    // let cam: Camera = Camera::new(
+    // 	&Vec3::set(-2.0, 2.0, 1.0), &Vec3::set(0.0, 0.0, -1.0),
+    // 	&Vec3::set(0.0, 1.0, 0.0), 90.0, ASPECTRATIO
+    // );
+    let cam: Camera = Camera::new(
+        &Vec3::set(-2.0, 2.0, 1.0),
+        &Vec3::set(0.0, 0.0, -1.0),
+        &Vec3::set(0.0, 1.0, 0.0),
+        20.0,
+        ASPECTRATIO,
+    );
 
     // let mut pixel_rgb = Box::new([Mem::new(); ((HEIGHT * WIDTH) as usize)]);
     // for i in 0..WIDTH {

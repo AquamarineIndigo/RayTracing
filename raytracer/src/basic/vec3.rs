@@ -45,6 +45,13 @@ pub fn vec3_vec_mul(a: &Vec3, b: &Vec3) -> Vec3 {
         z_dir: a.z_dir * b.z_dir,
     }
 }
+pub fn vec3_product(a: &Vec3, b: &Vec3) -> Vec3 {
+    Vec3 {
+        x_dir: a.y_dir * b.z_dir - a.z_dir * b.y_dir,
+        y_dir: a.z_dir * b.x_dir - a.x_dir * b.z_dir,
+        z_dir: a.x_dir * b.y_dir - a.y_dir * b.x_dir,
+    }
+}
 
 impl Vec3 {
     const NEAR_ZERO: f64 = 1e-8;
