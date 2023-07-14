@@ -1,6 +1,7 @@
 use super::clamp;
 use super::ray::Ray;
 use super::vec3::{vec3_mul, vec3_sub, vec3_tri_add, Vec3};
+use crate::basic::degrees_to_radians;
 
 #[derive(Copy, Clone)]
 pub struct Camera {
@@ -11,10 +12,13 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new() -> Self {
-        let aspect_ratio = 16.0 / 9.0;
-        let viewpoint_height = 2.0;
+    pub fn new(vfov: f64, aspect_ratio: f64) -> Self {
+        // vfov -> vertical field-of-view in degrees
+        let theta = degrees_to_radians(&vfov);
+        let h = (theta / 2.0).tan();
+        let viewpoint_height = 2.0 * h;
         let viewpoint_width = aspect_ratio * viewpoint_height;
+
         let focal_length = 1.0;
         let origin_ = Vec3::set(0.0, 0.0, 0.0);
         let horizontal_ = Vec3::set(viewpoint_width, 0.0, 0.0);
@@ -46,7 +50,7 @@ impl Camera {
 }
 impl Default for Camera {
     fn default() -> Self {
-        Self::new()
+        Self::new(90.0, 16.0 / 9.0)
     }
 }
 
